@@ -1,0 +1,18 @@
+{
+  "expo": {
+    "name": "Vouch",
+    "slug": "vouch",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#000000",
+    "splash": { "image": "./assets/splash.png", "resizeMode": "contain", "backgroundColor": "#000000" },
+    "ios": { "supportsTablet": false, "bundleIdentifier": "com.vouchapp.vouch", "buildNumber": "1",
+      "infoPlist": { "ITSAppUsesNonExemptEncryption": false } },
+    "android": { "package": "com.vouchapp.vouch", "versionCode": 1,
+      "adaptiveIcon": { "foregroundImage": "./assets/adaptive-icon.png", "backgroundColor": "#000000" } },
+    "plugins": ["expo-secure-store"],
+    "scheme": "vouch"
+  }
+}

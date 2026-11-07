@@ -1,0 +1,19 @@
+# Secrets
+.env
+.env.local
+.env.*.local
+server/.env
+mobile/.env
+
+# Build artifacts
+server/dist
+mobile/ios
+mobile/android
+mobile/.expo
+
+# Dependencies
+node_modules
+
+# OS
+.DS_Store
+Thumbs.db
