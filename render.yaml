@@ -11,18 +11,12 @@ services:
       - { key: NODE_ENV, value: production }
       - { key: DATABASE_URL, sync: false }
       - { key: DATABASE_SSL, value: "true" }
-      - { key: JWT_SECRET, sync: false }
-      - { key: OTP_PEPPER, sync: false }
-      - { key: ADMIN_TOKEN, sync: false }
+      - { key: JWT_SECRET, generateValue: true }
+      - { key: OTP_PEPPER, generateValue: true }
+      - { key: ADMIN_TOKEN, generateValue: true }
       - { key: CORS_ORIGINS, value: "*" }
       - { key: SMS_PROVIDER, value: console }
       - { key: PAYMENTS_ENABLED, value: "false" }
       - { key: PAYMENT_PROVIDER, value: mock }
       - { key: MAX_LIVE_IDEAS, value: "5" }
       - { key: GOOGLE_CLIENT_ID, value: "700553469092-3l4c5l5jloa2rh7137eoespdo9vadof8.apps.googleusercontent.com" }
-      - { key: SENTRY_DSN, sync: false }
-      - { key: R2_ACCOUNT_ID, sync: false }
-      - { key: R2_ACCESS_KEY, sync: false }
-      - { key: R2_SECRET_KEY, sync: false }
-      - { key: R2_BUCKET, sync: false }
-      - { key: R2_PUBLIC_URL, sync: false }

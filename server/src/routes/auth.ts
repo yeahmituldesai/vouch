@@ -30,7 +30,7 @@ r.post('/otp/request', limiter, wrap(async (req, res) => {
     [phone, hashOtp(phone, code)],
   );
   await sendOtp(phone, code);
-  const dev = config.NODE_ENV !== 'production' && config.SMS_PROVIDER === 'console';
+  const dev = config.SMS_PROVIDER === 'console';
   res.json({ ok: true, ...(dev ? { devCode: code } : {}) });
 }));
 

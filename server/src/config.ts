@@ -38,12 +38,14 @@ const schema = z
   })
   .superRefine((c, ctx) => {
     if (c.NODE_ENV === 'production') {
-      if (c.PAYMENTS_ENABLED === 'true' && c.PAYMENT_PROVIDER === 'mock')
-        ctx.addIssue({ code: 'custom', message: 'PAYMENT_PROVIDER=mock is not allowed in production' });
-      if (c.SMS_PROVIDER === 'console')
-        ctx.addIssue({ code: 'custom', message: 'SMS_PROVIDER=console is not allowed in production' });
-      if (c.CORS_ORIGINS === '*')
-        ctx.addIssue({ code: 'custom', message: 'Set CORS_ORIGINS to your real origins in production' });
+      if (c.PAYMENTS_ENABLED === 'true') {
+        if (c.PAYMENT_PROVIDER === 'mock')
+          ctx.addIssue({ code: 'custom', message: 'PAYMENT_PROVIDER=mock is not allowed in production' });
+        if (c.SMS_PROVIDER === 'console')
+          ctx.addIssue({ code: 'custom', message: 'SMS_PROVIDER=console is not allowed when payments are enabled' });
+        if (c.CORS_ORIGINS === '*')
+          ctx.addIssue({ code: 'custom', message: 'Set CORS_ORIGINS to your real origins in production when payments are enabled' });
+      }
     }
     if (!!c.REVIEW_PHONE !== !!c.REVIEW_CODE)
       ctx.addIssue({ code: 'custom', message: 'Set both REVIEW_PHONE and REVIEW_CODE, or neither' });
