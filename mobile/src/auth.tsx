@@ -6,8 +6,6 @@ import type { User } from './types';
 type Ctx = {
   ready: boolean; seen: boolean; user: User | null; paymentsEnabled: boolean;
   finishOnboarding: () => Promise<void>;
-  requestOtp: (phone: string) => Promise<void>;
-  verifyOtp: (phone: string, code: string) => Promise<void>;
   refresh: () => Promise<void>;
   signOut: () => Promise<void>;
 };
@@ -45,13 +43,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo<Ctx>(() => ({
     ready, seen, user, paymentsEnabled: pays,
     finishOnboarding: async () => { setSeen(true); await SecureStore.setItemAsync('vouch.seen', '1'); },
-    requestOtp: async (phone) => { await api('/auth/otp/request', { method: 'POST', body: { phone } }); },
-    verifyOtp: async (phone, code) => {
-      const r = await api<{ token: string; user: User }>('/auth/otp/verify', { method: 'POST', body: { phone, code } });
-      setToken(r.token);
-      await SecureStore.setItemAsync('vouch.token', r.token);
-      setUser(r.user);
-    },
     refresh: async () => { const me = await api<{ user: User }>('/me'); setUser(me.user); },
     signOut,
   }), [ready, seen, user, pays, signOut]);

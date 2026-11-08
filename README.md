@@ -55,7 +55,7 @@ You need Node 20+ and PostgreSQL 14+.
    ```
    npx expo start
    ```
-   Scan the QR code with the Expo Go app on your iPhone. Sign in with any 10 digit number, read the code from the server log.
+   Scan the QR code with the Expo Go app on your iPhone. Sign in with Google (set EXPO_PUBLIC_GOOGLE_CLIENT_ID first).
 
 ## Part B. Accounts you need to create
 
