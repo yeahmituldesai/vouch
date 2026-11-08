@@ -73,7 +73,12 @@ r.post('/google', limiter, wrap(async (req, res) => {
   const vr = await fetch('https://oauth2.googleapis.com/tokeninfo?id_token=' + encodeURIComponent(body.idToken));
   if (!vr.ok) throw new HttpError(401, 'BAD_GOOGLE_TOKEN', 'That Google sign-in was not valid');
   const info = await vr.json() as { aud?: string; iss?: string; exp?: string; sub?: string; email?: string; name?: string };
-  if (info.aud !== config.GOOGLE_CLIENT_ID) throw new HttpError(401, 'BAD_GOOGLE_AUDIENCE', 'Google sign-in was for a different app');
+  const allowedAudiences = [
+    config.GOOGLE_CLIENT_ID,
+    config.GOOGLE_ANDROID_CLIENT_ID,
+    '700553469092-aaa23m9jhjtf2a95m25qp7aiu6vi79b3.apps.googleusercontent.com',
+  ].filter(Boolean);
+  if (!info.aud || !allowedAudiences.includes(info.aud)) throw new HttpError(401, 'BAD_GOOGLE_AUDIENCE', 'Google sign-in was for a different app');
   if (info.iss !== 'accounts.google.com' && info.iss !== 'https://accounts.google.com') throw new HttpError(401, 'BAD_GOOGLE_ISSUER', 'Invalid Google token issuer');
   if (!info.sub) throw new HttpError(401, 'BAD_GOOGLE_TOKEN', 'Google token missing subject');
   if (info.exp && Number(info.exp) * 1000 < Date.now()) throw new HttpError(401, 'EXPIRED_GOOGLE_TOKEN', 'Google sign-in expired. Try again.');

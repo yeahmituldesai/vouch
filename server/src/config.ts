@@ -26,6 +26,7 @@ const schema = z
     REVIEW_CODE: z.string().regex(/^\d{6}$/).optional().or(z.literal('')),
     // Optional Google sign-in. Set to your Google OAuth client ID to enable. Leave empty to disable.
     GOOGLE_CLIENT_ID: z.string().optional().or(z.literal('')),
+    GOOGLE_ANDROID_CLIENT_ID: z.string().optional().or(z.literal('')),
     // Optional error monitoring. Set a Sentry DSN to enable. Free tier is enough for a beta.
     SENTRY_DSN: z.string().optional().or(z.literal('')),
     // Optional image uploads via Cloudflare R2 / S3-compatible storage (free tier: 10GB).
