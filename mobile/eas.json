@@ -13,7 +13,7 @@
     "preview": {
       "distribution": "internal",
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://YOUR-STAGING-API.example.com"
+        "EXPO_PUBLIC_API_URL": "https://vouch-api-9fpi.onrender.com"
       },
       "android": {
         "buildType": "apk"
@@ -21,7 +21,7 @@
     },
     "production": {
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://YOUR-PRODUCTION-API.example.com"
+        "EXPO_PUBLIC_API_URL": "https://vouch-api-9fpi.onrender.com"
       }
     }
   },
