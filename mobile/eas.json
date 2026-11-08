@@ -13,7 +13,9 @@
     "preview": {
       "distribution": "internal",
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://vouch-api-9fpi.onrender.com"
+        "EXPO_PUBLIC_API_URL": "https://vouch-api-9fpi.onrender.com",
+        "EXPO_PUBLIC_WEB_URL": "https://vouch-api-9fpi.onrender.com",
+        "EXPO_PUBLIC_GOOGLE_CLIENT_ID": "700553469092-3l4c5l5jloa2rh7137eoespdo9vadof8.apps.googleusercontent.com"
       },
       "android": {
         "buildType": "apk"
@@ -21,7 +23,9 @@
     },
     "production": {
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://vouch-api-9fpi.onrender.com"
+        "EXPO_PUBLIC_API_URL": "https://vouch-api-9fpi.onrender.com",
+        "EXPO_PUBLIC_WEB_URL": "https://vouch-api-9fpi.onrender.com",
+        "EXPO_PUBLIC_GOOGLE_CLIENT_ID": "700553469092-3l4c5l5jloa2rh7137eoespdo9vadof8.apps.googleusercontent.com"
       }
     }
   },
