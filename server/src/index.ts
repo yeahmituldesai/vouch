@@ -15,7 +15,16 @@ async function main() {
   const pub = path.join(__dirname, '..', 'public');
   const todo = fs.readdirSync(pub).filter((f) => f.endsWith('.html') && fs.readFileSync(path.join(pub, f), 'utf8').includes('[['));
   if (todo.length) console.warn(`\n!!! LEGAL PLACEHOLDERS REMAIN in public/${todo.join(', public/')}. Fill every [[...]] and have a lawyer review before launch.\n`);
-  const server = createApp().listen(config.PORT, () => console.log(`Vouch API listening on :${config.PORT} (${config.NODE_ENV}, payments=${config.PAYMENT_PROVIDER})`));
+  const app = createApp();
+  const server = app.listen(config.PORT, () => console.log(`Vouch API listening on :${config.PORT} (${config.NODE_ENV}, payments=${config.PAYMENT_PROVIDER})`));
+  let server2: ReturnType<typeof app.listen> | undefined;
+  if (config.PORT !== 4000) {
+    try {
+      server2 = app.listen(4000, () => console.log('Vouch API also listening on :4000'));
+    } catch (e) {
+      console.warn('Could not bind port 4000:', e);
+    }
+  }
   let timer: NodeJS.Timeout | undefined;
   if (config.SETTLEMENT_INTERVAL_MS > 0) {
     const tick = () => runSettlement().then((s) => s.closed + s.refunded && console.log('settlement', s)).catch((e) => console.error('settlement error', e));
@@ -24,6 +33,7 @@ async function main() {
   }
   const stop = () => {
     if (timer) clearInterval(timer);
+    if (server2) server2.close();
     server.close(() => pool.end().then(() => process.exit(0)));
     setTimeout(() => process.exit(1), 10_000).unref();
   };

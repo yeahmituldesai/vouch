@@ -10,7 +10,7 @@ export class ApiError extends Error {
 
 export async function api<T = any>(path: string, opts: { method?: string; body?: unknown } = {}): Promise<T> {
   const ctl = new AbortController();
-  const timer = setTimeout(() => ctl.abort(), 15000);
+  const timer = setTimeout(() => ctl.abort(), 60000);
   try {
     const r = await fetch(`${BASE}/api/v1${path}`, {
       method: opts.method ?? 'GET',
@@ -26,7 +26,7 @@ export async function api<T = any>(path: string, opts: { method?: string; body?:
     return j as T;
   } catch (e: any) {
     if (e instanceof ApiError) throw e;
-    if (e?.name === 'AbortError') throw new ApiError(0, 'TIMEOUT', 'The request took too long. Check your connection.');
+    if (e?.name === 'AbortError') throw new ApiError(0, 'TIMEOUT', 'The server is waking up. Please try again.');
     throw new ApiError(0, 'NETWORK', 'Could not reach Vouch. Check your connection.');
   } finally {
     clearTimeout(timer);

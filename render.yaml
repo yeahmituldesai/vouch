@@ -19,5 +19,6 @@ services:
       - { key: PAYMENTS_ENABLED, value: "false" }
       - { key: PAYMENT_PROVIDER, value: mock }
       - { key: MAX_LIVE_IDEAS, value: "5" }
+      - { key: PORT, value: "10000" }
       - { key: GOOGLE_CLIENT_ID, value: "700553469092-3l4c5l5jloa2rh7137eoespdo9vadof8.apps.googleusercontent.com" }
       - { key: GOOGLE_ANDROID_CLIENT_ID, value: "700553469092-aaa23m9jhjtf2a95m25qp7aiu6vi79b3.apps.googleusercontent.com" }
