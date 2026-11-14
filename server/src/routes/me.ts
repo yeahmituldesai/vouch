@@ -99,7 +99,7 @@ r.delete('/', wrap(async (req, res) => {
     await c.query('DELETE FROM notifications WHERE user_id = $1', [id]);
     await c.query('DELETE FROM blocks WHERE blocker_id = $1 OR blocked_id = $1', [id]);
     await c.query('DELETE FROM reports WHERE reporter_id = $1', [id]);
-    await c.query(`UPDATE users SET phone = 'deleted:' || id::text, name = 'Deleted user', handle = 'deleted_' || substr(id::text, 1, 8), bio = '', is_banned = true, deleted_at = now() WHERE id = $1`, [id]);
+    await c.query(`UPDATE users SET phone = 'deleted:' || id::text, name = 'Deleted user', handle = 'deleted_' || substr(id::text, 1, 8), bio = '', google_sub = NULL, email = NULL, push_token = NULL, is_banned = true, deleted_at = now() WHERE id = $1`, [id]);
   });
   res.json({ ok: true });
 }));

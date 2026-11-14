@@ -10,12 +10,32 @@ import { sendOtp } from '../lib/sms';
 
 export const publicUser = (u: any) => ({ id: u.id, name: u.name, handle: u.handle, bio: u.bio ?? '', avatarUrl: u.avatar_url ?? null });
 const r = Router();
-const isReview = (phone: string) => !!config.REVIEW_PHONE && !!config.REVIEW_CODE && phone === normalizePhone(config.REVIEW_PHONE);
+const isReview = (phone: string) =>
+  config.NODE_ENV !== 'production' && !!config.REVIEW_PHONE && !!config.REVIEW_CODE && phone === normalizePhone(config.REVIEW_PHONE);
 
-const limiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 10, standardHeaders: true, legacyHeaders: false, skip: () => config.NODE_ENV === 'test' });
+// Phone + OTP sign-in existed before Google sign-in and is kept only for local
+// development and the automated tests. It is completely disabled in production.
+const phoneLoginEnabled = config.NODE_ENV !== 'production';
+
+const tooMany = (_req: any, res: any) =>
+  res.status(429).json({ error: { code: 'RATE_LIMITED', message: 'Too many attempts. Please wait a few minutes and try again.' } });
+
+const limiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 10, standardHeaders: true, legacyHeaders: false, skip: () => config.NODE_ENV === 'test', handler: tooMany });
+// Google sign-in is the only production sign-in path, so be generous: many
+// beta testers can share one carrier or campus IP address.
+const googleLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 200,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skipSuccessfulRequests: true,
+  skip: () => config.NODE_ENV === 'test',
+  handler: tooMany,
+});
 const phoneSchema = z.string().min(8).max(20);
 
 r.post('/otp/request', limiter, wrap(async (req, res) => {
+  if (!phoneLoginEnabled) throw new HttpError(404, 'NOT_FOUND', 'Phone sign-in is not available');
   const body = parse(z.object({ phone: phoneSchema }), req.body);
   const phone = normalizePhone(body.phone);
   if (!phone) throw new HttpError(400, 'INVALID_PHONE', 'Enter a valid mobile number');
@@ -30,11 +50,12 @@ r.post('/otp/request', limiter, wrap(async (req, res) => {
     [phone, hashOtp(phone, code)],
   );
   await sendOtp(phone, code);
-  const dev = config.SMS_PROVIDER === 'console';
+  const dev = config.SMS_PROVIDER === 'console' && config.NODE_ENV !== 'production';
   res.json({ ok: true, ...(dev ? { devCode: code } : {}) });
 }));
 
 r.post('/otp/verify', limiter, wrap(async (req, res) => {
+  if (!phoneLoginEnabled) throw new HttpError(404, 'NOT_FOUND', 'Phone sign-in is not available');
   const body = parse(z.object({ phone: phoneSchema, code: z.string().regex(/^\d{6}$/, 'Enter the 6 digit code') }), req.body);
   const phone = normalizePhone(body.phone);
   if (!phone) throw new HttpError(400, 'INVALID_PHONE', 'Enter a valid mobile number');
@@ -67,7 +88,7 @@ r.post('/otp/verify', limiter, wrap(async (req, res) => {
 }));
 
 // Google sign-in (optional, enabled when GOOGLE_CLIENT_ID is set).
-r.post('/google', limiter, wrap(async (req, res) => {
+r.post('/google', googleLimiter, wrap(async (req, res) => {
   if (!config.GOOGLE_CLIENT_ID) throw new HttpError(501, 'GOOGLE_DISABLED', 'Google sign-in is not configured');
   const body = parse(z.object({ idToken: z.string().min(1) }), req.body);
   const vr = await fetch('https://oauth2.googleapis.com/tokeninfo?id_token=' + encodeURIComponent(body.idToken));

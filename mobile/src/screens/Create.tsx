@@ -14,7 +14,7 @@ const DAYS = [14, 30, 60] as const;
 
 export function CreateScreen() {
   const nav = useNav();
-  const { paymentsEnabled: pays } = useAuth();
+  const { paymentsEnabled: pays, imagesEnabled } = useAuth();
   const [name, setName] = useState('');
   const [cat, setCat] = useState<(typeof CATS)[number]>('Snacks');
   const [price, setPrice] = useState('');
@@ -38,7 +38,7 @@ export function CreateScreen() {
     setBusy(true); setErr('');
     try {
       const r = await api<{ idea: Idea }>('/ideas', { method: 'POST', body: { name: name.trim(), category: cat, description: desc.trim(), ...(pays ? { priceInr: parseInt(price, 10) } : {}), goal: parseInt(goal, 10), durationDays: days } });
-      if (photo) { try { await api(`/ideas/${r.idea.id}/image`, { method: 'POST', body: { image: photo } }); } catch { /* image upload optional */ } }
+      if (photo && imagesEnabled) { try { await api(`/ideas/${r.idea.id}/image`, { method: 'POST', body: { image: photo } }); } catch { /* image upload optional */ } }
       success();
       nav.replace('Idea', { id: r.idea.id });
     } catch (e) { setErr(e instanceof ApiError ? e.message : 'Something went wrong'); }
@@ -65,11 +65,13 @@ export function CreateScreen() {
             <Text style={{ color: C.g, fontSize: 12.5, fontWeight: '600', marginTop: 16, marginBottom: 8 }}>Test duration</Text>
             <View style={{ flexDirection: 'row' }}>{DAYS.map((d) => <Chip key={d} label={`${d} days`} on={days === d} onPress={() => setDays(d)} />)}</View>
             <Field label="What is it?" value={desc} onChangeText={setDesc} placeholder="Tell people what it is and why they would want it" multiline maxLength={500} style={{ minHeight: 110 }} />
-            <Text style={{ color: C.g, fontSize: 12.5, fontWeight: '600', marginTop: 16, marginBottom: 8 }}>Photo (optional)</Text>
-            <Pressable onPress={pickPhoto} style={{ height: 120, borderRadius: 16, backgroundColor: C.s1, borderWidth: 1, borderColor: C.s3, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-              {photo ? <Image source={{ uri: photo }} style={{ width: '100%', height: '100%' }} resizeMode="cover" /> : <Text style={{ color: C.g, fontSize: 13 }}>Tap to add a photo</Text>}
-            </Pressable>
-            {photo ? <Pressable onPress={() => setPhoto(null)} style={{ marginTop: 6 }}><Text style={{ color: C.g, fontSize: 12 }}>Remove photo</Text></Pressable> : null}
+            {imagesEnabled ? (<>
+              <Text style={{ color: C.g, fontSize: 12.5, fontWeight: '600', marginTop: 16, marginBottom: 8 }}>Photo (optional)</Text>
+              <Pressable onPress={pickPhoto} style={{ height: 120, borderRadius: 16, backgroundColor: C.s1, borderWidth: 1, borderColor: C.s3, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                {photo ? <Image source={{ uri: photo }} style={{ width: '100%', height: '100%' }} resizeMode="cover" /> : <Text style={{ color: C.g, fontSize: 13 }}>Tap to add a photo</Text>}
+              </Pressable>
+              {photo ? <Pressable onPress={() => setPhoto(null)} style={{ marginTop: 6 }}><Text style={{ color: C.g, fontSize: 12 }}>Remove photo</Text></Pressable> : null}
+            </>) : null}
             <Text style={{ color: C.g, fontSize: 12, marginTop: 10, lineHeight: 17 }}>{pays ? 'If your goal is not reached by the deadline, every buyer is refunded automatically.' : 'If enough people show interest by the deadline, you know it is worth building.'}</Text>
             <ErrorText text={err} />
             <View style={{ marginTop: 22 }}><Button title="Publish idea" onPress={publish} loading={busy} disabled={!ok} /></View>

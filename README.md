@@ -1,6 +1,16 @@
 # Vouch
 
-> **Beta mode (default).** Payments are switched off. People tap **“I’m interested”** instead of paying. Nothing in the app shows a price or any money, and the demand score and goals count those taps. No payment account, refunds, founder payouts or payment legal work are needed to run this. To turn real payments on later, set `PAYMENTS_ENABLED=true` on the server and follow Part D. Both modes are tested.
+## 📱 Beta download (Android)
+
+**Vouch beta v0.0.1** — free, Android only.
+
+1. On your Android phone, open **[download Vouch beta](https://github.com/yeahmituldesai/vouch/releases/download/vouch-beta-v0.0.1/vouch-beta.apk)**.
+2. Allow installing from this source when Chrome asks.
+3. Open Vouch, sign in with Google, and post your first idea.
+
+Newer versions are offered inside the app automatically. No payments are taken during the beta — tapping **"I'm interested"** records demand.
+
+> **Beta mode (default).** Payments are switched off. People tap **"I'm interested"** instead of paying. Nothing in the app shows a price or any money, and the demand score and goals count those taps. No payment account, refunds, founder payouts or payment legal work are needed to run this. To turn real payments on later, set `PAYMENTS_ENABLED=true` on the server and follow Part D. Both modes are tested.
 
 Validate a product idea before you launch it. Founders post an idea, people vouch for it, give feedback and pre-order.
 If the goal is missed by the deadline, every buyer is refunded automatically.

@@ -8,7 +8,7 @@ export class ApiError extends Error {
   constructor(public status: number, public code: string, message: string) { super(message); }
 }
 
-export async function api<T = any>(path: string, opts: { method?: string; body?: unknown } = {}): Promise<T> {
+export async function api<T = any>(path: string, opts: { method?: string; body?: unknown; skipAuthHandler?: boolean } = {}): Promise<T> {
   const ctl = new AbortController();
   const timer = setTimeout(() => ctl.abort(), 60000);
   try {
@@ -20,7 +20,7 @@ export async function api<T = any>(path: string, opts: { method?: string; body?:
     });
     const j = await r.json().catch(() => null);
     if (!r.ok) {
-      if (r.status === 401 && token) onUnauthorized();
+      if (r.status === 401 && token && !opts.skipAuthHandler) onUnauthorized();
       throw new ApiError(r.status, j?.error?.code ?? 'ERROR', j?.error?.message ?? 'Something went wrong');
     }
     return j as T;

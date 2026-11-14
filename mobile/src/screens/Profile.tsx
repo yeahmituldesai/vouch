@@ -41,7 +41,7 @@ export function Profile() {
       { text: 'Edit profile', onPress: () => nav.navigate('EditProfile') },
       { text: 'Terms', onPress: () => Linking.openURL(`${WEB}/terms`) },
       { text: 'Privacy Policy', onPress: () => Linking.openURL(`${WEB}/privacy`) },
-      { text: 'Contact support', onPress: () => Linking.openURL(`mailto:support@${WEB.replace(/^https?:\/\//, '')}`) },
+      { text: 'Contact support', onPress: () => Linking.openURL(`${WEB}/support`) },
       { text: 'Sign out', onPress: () => signOut() },
       { text: 'Delete account', style: 'destructive', onPress: confirmDelete },
       { text: 'Cancel', style: 'cancel' }]);

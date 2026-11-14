@@ -18,8 +18,10 @@ export function CommentsScreen() {
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [err, setErr] = useState('');
   const load = useCallback(async () => {
-    try { setItems((await api<{ comments: Comment[] }>(`/ideas/${params.id}/comments`)).comments); } catch (e) { Alert.alert('Could not load feedback', errMsg(e)); }
+    try { setItems((await api<{ comments: Comment[] }>(`/ideas/${params.id}/comments`)).comments); setErr(''); }
+    catch (e) { setErr(errMsg(e)); }
     setLoaded(true);
   }, [params.id]);
   useEffect(() => { load(); }, [load]);
@@ -37,7 +39,7 @@ export function CommentsScreen() {
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
         <FlatList data={items} keyExtractor={(c) => c.id} contentContainerStyle={{ paddingHorizontal: 18, paddingBottom: 12, flexGrow: 1 }} keyboardShouldPersistTaps="handled"
           ListHeaderComponent={<Text style={[T.sm, { marginBottom: 6 }]} numberOfLines={1}>{params.name}</Text>}
-          ListEmptyComponent={loaded ? <Empty title="No feedback yet" sub="Be the first to tell the founder what you think." /> : <View />}
+          ListEmptyComponent={loaded ? (err ? <Empty title="Could not load feedback" sub={err} /> : <Empty title="No feedback yet" sub="Be the first to tell the founder what you think." />) : <View />}
           renderItem={({ item, index }) => (
             <Rise i={index}><View style={{ flexDirection: 'row', paddingVertical: 12, borderTopWidth: 1, borderTopColor: C.ln }}>
               <Avatar name={item.author.name || item.author.handle} size={30} />

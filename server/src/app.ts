@@ -15,6 +15,7 @@ import orderRoutes from './routes/orders';
 import socialRoutes from './routes/social';
 import webhookRoutes from './routes/webhooks';
 import adminRoutes from './routes/admin';
+import { imagesEnabled } from './lib/images';
 
 export function createApp() {
   const app = express();
@@ -36,7 +37,7 @@ export function createApp() {
     }
   });
 
-  app.get('/api/v1/config', (_req, res) => res.json({ paymentsEnabled: config.PAYMENTS_ENABLED === 'true' }));
+  app.get('/api/v1/config', (_req, res) => res.json({ paymentsEnabled: config.PAYMENTS_ENABLED === 'true', imagesEnabled: imagesEnabled() }));
   app.get('/api/v1/app-version', (_req, res) => res.json({
     versionCode: 5,
     versionName: '0.0.1',

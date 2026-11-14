@@ -94,6 +94,9 @@ export function IdeaScreen() {
           </Rise>
           <Rise i={2}>
             <Text style={{ color: '#d1d1d6', fontSize: 15, lineHeight: 23, marginTop: 16 }}>{idea.description}</Text>
+            <View style={{ flexDirection: 'row', marginTop: 16 }}>
+              <Pill icon="chat" label={`${idea.stats.comments} feedback`} onPress={() => nav.navigate('Comments', { id: idea.id, name: idea.name })} a11y="Feedback" />
+            </View>
             <Press onPress={() => nav.navigate('Demand', { id: idea.id })} label="Demand score" style={{ flexDirection: 'row', alignItems: 'center', marginTop: 18, padding: 14, borderRadius: 18, backgroundColor: C.s1, borderWidth: 1, borderColor: C.s3 }}>
               <View style={{ flex: 1 }}><Text style={{ color: C.t, fontSize: 15, fontWeight: '700' }}>Demand score</Text><Text style={T.sm}>See what the numbers say</Text></View>
               <Text style={{ color: C.t, fontSize: 26, fontWeight: '800', letterSpacing: -1 }}>{idea.demand.score}</Text>

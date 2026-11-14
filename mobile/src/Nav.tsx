@@ -66,7 +66,7 @@ const linking: LinkingOptions<RootParams> = {
 };
 
 export function Nav() {
-  const { ready, seen, user } = useAuth();
+  const { ready, seen, user, paymentsEnabled: pays } = useAuth();
   if (!ready) return <View style={{ flex: 1, backgroundColor: C.bg, alignItems: 'center', justifyContent: 'center' }}><Text style={{ color: C.g, fontSize: 14 }}>Loading…</Text></View>;
   return (
     <NavigationContainer theme={{ ...DarkTheme, colors: { ...DarkTheme.colors, background: C.bg, card: C.bg, primary: C.t } }} linking={user && user.name ? linking : undefined}>
@@ -78,7 +78,7 @@ export function Nav() {
               <Stack.Screen name="Tabs" component={Tabs} options={{ animation: 'fade' }} />
               <Stack.Screen name="Idea" component={IdeaScreen} />
               <Stack.Screen name="Comments" component={CommentsScreen} options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
-              <Stack.Screen name="PreOrder" component={PreOrderScreen} options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
+              {pays ? <Stack.Screen name="PreOrder" component={PreOrderScreen} options={{ presentation: 'modal', animation: 'slide_from_bottom' }} /> : null}
               <Stack.Screen name="Create" component={CreateScreen} options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
               <Stack.Screen name="Demand" component={DemandScreen} />
               <Stack.Screen name="EditProfile" component={() => <EditProfile />} />
