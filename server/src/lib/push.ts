@@ -4,6 +4,15 @@ import { q } from '../db';
 
 type ServiceAccount = { projectId: string; clientEmail: string; privateKey: string };
 
+export type Delivery = {
+  provider: 'expo' | 'fcm';
+  ok: boolean;
+  status: number;
+  messageId?: string;
+  error?: string;
+  unregistered?: boolean;
+};
+
 let serviceAccountCache: ServiceAccount | null | undefined;
 let tokenCache: { accessToken: string; expiresAt: number } | null = null;
 
@@ -81,19 +90,26 @@ function isExpoToken(token: string) {
   return token.startsWith('ExponentPushToken[') || token.startsWith('ExpoPushToken[');
 }
 
-async function sendExpoPush(token: string, title: string, body: string, data?: Record<string, unknown>) {
-  await fetch('https://exp.host/--/api/v2/push/send', {
+async function sendExpoPush(token: string, title: string, body: string, data?: Record<string, unknown>): Promise<Delivery> {
+  const res = await fetch('https://exp.host/--/api/v2/push/send', {
     method: 'POST',
     headers: { 'content-type': 'application/json', accept: 'application/json' },
     body: JSON.stringify({ to: token, title, body, data: data ?? {}, sound: 'default', priority: 'high' }),
   });
+  const payload = (await res.json().catch(() => null)) as { data?: { id?: string; status?: string } } | null;
+  return {
+    provider: 'expo',
+    ok: res.ok && payload?.data?.status !== 'error',
+    status: res.status,
+    messageId: payload?.data?.id,
+  };
 }
 
-async function sendFcmPush(token: string, title: string, body: string, data?: Record<string, unknown>) {
+async function sendFcmPush(token: string, title: string, body: string, data?: Record<string, unknown>): Promise<Delivery> {
   const account = await loadServiceAccount();
-  if (!account) return;
+  if (!account) return { provider: 'fcm', ok: false, status: 0, error: 'not_configured' };
   const accessToken = await fcmAccessToken();
-  if (!accessToken) return;
+  if (!accessToken) return { provider: 'fcm', ok: false, status: 0, error: 'auth_failed' };
 
   // FCM data payload values must be strings.
   const stringData: Record<string, string> = {};
@@ -120,35 +136,45 @@ async function sendFcmPush(token: string, title: string, body: string, data?: Re
   if (!res.ok) {
     const text = await res.text().catch(() => '');
     console.warn('FCM send failed', res.status, text.slice(0, 300));
-    // Token is no longer valid (app uninstalled, data cleared): drop it.
-    if (res.status === 404 || text.includes('UNREGISTERED')) throw new Error('UNREGISTERED');
+    return {
+      provider: 'fcm',
+      ok: false,
+      status: res.status,
+      error: text.slice(0, 300),
+      // Token is no longer valid (app uninstalled, data cleared): drop it.
+      unregistered: res.status === 404 || text.includes('UNREGISTERED'),
+    };
   }
+  const payload = (await res.json().catch(() => null)) as { name?: string } | null;
+  return { provider: 'fcm', ok: true, status: res.status, messageId: payload?.name };
 }
 
-async function deliver(token: string, title: string, body: string, data?: Record<string, unknown>) {
-  if (isExpoToken(token)) await sendExpoPush(token, title, body, data);
-  else await sendFcmPush(token, title, body, data);
+async function deliver(token: string, title: string, body: string, data?: Record<string, unknown>): Promise<Delivery> {
+  if (isExpoToken(token)) return sendExpoPush(token, title, body, data);
+  return sendFcmPush(token, title, body, data);
 }
 
 export async function sendPush(pushToken: string | null | undefined, title: string, body: string, data?: Record<string, unknown>) {
-  if (!pushToken) return;
+  if (!pushToken) return null;
   try {
-    await deliver(pushToken, title, body, data);
-  } catch {
-    /* best effort */
+    return await deliver(pushToken, title, body, data);
+  } catch (error) {
+    return { provider: 'fcm', ok: false, status: 0, error: (error as Error).message } as Delivery;
   }
 }
 
 export async function pushToUser(userId: string, title: string, body: string, data?: Record<string, unknown>) {
   const rows = (await q('SELECT push_token FROM users WHERE id = $1', [userId])).rows;
   const token: string | null = rows[0]?.push_token ?? null;
-  if (!token) return;
+  if (!token) return null;
   try {
-    await deliver(token, title, body, data);
-  } catch (error) {
-    if ((error as Error).message === 'UNREGISTERED') {
+    const delivery = await deliver(token, title, body, data);
+    if (delivery.unregistered) {
       await q('UPDATE users SET push_token = NULL WHERE id = $1 AND push_token = $2', [userId, token]).catch(() => {});
     }
+    return delivery;
+  } catch (error) {
+    return { provider: 'fcm', ok: false, status: 0, error: (error as Error).message } as Delivery;
   }
 }
 

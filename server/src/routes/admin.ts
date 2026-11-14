@@ -44,8 +44,8 @@ r.post('/push', wrap(async (req, res) => {
   );
   const user = rows[0];
   if (!user) throw new HttpError(404, 'NOT_FOUND', 'User not found');
-  await pushToUser(user.id, b.title, b.body, { type: 'admin_push' });
-  res.json({ ok: true, pushConfigured: await pushConfigured(), hadToken: !!user.push_token });
+  const delivery = await pushToUser(user.id, b.title, b.body, { type: 'admin_push' });
+  res.json({ ok: true, pushConfigured: await pushConfigured(), hadToken: !!user.push_token, delivery });
 }));
 
 export default r;
