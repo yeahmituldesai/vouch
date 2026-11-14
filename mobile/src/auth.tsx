@@ -1,6 +1,6 @@
 import * as SecureStore from 'expo-secure-store';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { api, setOnUnauthorized, setToken } from './api';
+import { ApiError, api, setOnUnauthorized, setToken } from './api';
 import { registerForPushNotifications } from './push';
 import type { User } from './types';
 
@@ -20,6 +20,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [pays, setPays] = useState(false);
 
   const signOut = useCallback(async () => {
+    await api('/me/push-token', { method: 'DELETE' }).catch(() => {});
     setToken(null); setUser(null);
     await SecureStore.deleteItemAsync('vouch.token').catch(() => {});
   }, []);
@@ -34,8 +35,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const t = await SecureStore.getItemAsync('vouch.token');
         if (t) {
           setToken(t);
-          // Fetch user in background; don't block the UI on a slow/dead API
-          api<{ user: User }>('/me').then((me) => setUser(me.user)).catch(() => { setToken(null); });
+          // Fetch the user without blocking the UI. A sleeping free-tier server
+          // can take a while, so retry instead of silently signing the user out.
+          let me: { user: User } | null = null;
+          for (let attempt = 0; attempt < 3 && !me; attempt++) {
+            me = await api<{ user: User }>('/me').catch((error) => {
+              if (error instanceof ApiError && error.status === 401) throw error;
+              return null;
+            });
+            if (!me) await new Promise((resolve) => setTimeout(resolve, 1500));
+          }
+          if (me) setUser(me.user);
         }
       } catch { /* signed out or offline: the Phone screen handles it */ }
       setReady(true);
