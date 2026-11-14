@@ -5,6 +5,7 @@ import { HttpError, parse, uuid, wrap } from '../lib/http';
 import { requireAdmin } from '../lib/auth';
 import { runSettlement } from '../lib/settle';
 import { pushConfigured, pushToUser } from '../lib/push';
+import { APP_VERSION } from '../lib/appVersion';
 
 const r = Router();
 r.use(requireAdmin);
@@ -46,6 +47,34 @@ r.post('/push', wrap(async (req, res) => {
   if (!user) throw new HttpError(404, 'NOT_FOUND', 'User not found');
   const delivery = await pushToUser(user.id, b.title, b.body, { type: 'admin_push' });
   res.json({ ok: true, pushConfigured: await pushConfigured(), hadToken: !!user.push_token, delivery });
+}));
+
+// Tell every registered device that a new APK is waiting.
+r.post('/notify-update', wrap(async (_req, res) => {
+  const { rows } = await q(
+    'SELECT id FROM users WHERE push_token IS NOT NULL AND is_banned = false ORDER BY created_at',
+  );
+  const deliveries = [];
+  for (const user of rows) {
+    const delivery = await pushToUser(
+      user.id,
+      `Vouch ${APP_VERSION.versionName} is ready`,
+      'Tap to open Vouch, then tap Update to install the new version.',
+      {
+        type: 'app_update',
+        versionCode: String(APP_VERSION.versionCode),
+        url: APP_VERSION.downloadUrl,
+      },
+    );
+    deliveries.push({ userId: user.id, delivery });
+  }
+  res.json({
+    ok: true,
+    version: APP_VERSION.versionName,
+    targeted: rows.length,
+    delivered: deliveries.filter((entry) => entry.delivery?.ok).length,
+    deliveries,
+  });
 }));
 
 export default r;

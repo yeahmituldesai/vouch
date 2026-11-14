@@ -16,6 +16,7 @@ import socialRoutes from './routes/social';
 import webhookRoutes from './routes/webhooks';
 import adminRoutes from './routes/admin';
 import { imagesEnabled } from './lib/images';
+import { APP_VERSION } from './lib/appVersion';
 
 export function createApp() {
   const app = express();
@@ -38,13 +39,7 @@ export function createApp() {
   });
 
   app.get('/api/v1/config', (_req, res) => res.json({ paymentsEnabled: config.PAYMENTS_ENABLED === 'true', imagesEnabled: imagesEnabled() }));
-  app.get('/api/v1/app-version', (_req, res) => res.json({
-    versionCode: 6,
-    versionName: '0.0.2',
-    downloadUrl: 'https://github.com/yeahmituldesai/vouch/releases/download/vouch-beta-v0.0.2/vouch-beta.apk',
-    changelog: 'Vouch wordmark on the Home header, cleaner tab bar and the latest fixes.',
-    forceUpdate: false,
-  }));
+  app.get('/api/v1/app-version', (_req, res) => res.json(APP_VERSION));
 
   // Public landing page for shared idea links (the app shares /i/:id URLs).
   app.get('/i/:id', async (req, res, next) => {
@@ -65,7 +60,7 @@ export function createApp() {
         String(value ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] as string));
       const percent = Math.min(100, Math.round((idea.interested / idea.goal) * 100));
       const founder = idea.owner_name || `@${idea.owner_handle}`;
-      const appUrl = 'https://github.com/yeahmituldesai/vouch/releases/download/vouch-beta-v0.0.2/vouch-beta.apk';
+      const appUrl = APP_VERSION.downloadUrl;
       res.type('html').send(`<!doctype html>
 <html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
