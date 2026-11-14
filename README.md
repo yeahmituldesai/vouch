@@ -2,9 +2,9 @@
 
 ## 📱 Beta download (Android)
 
-**Vouch beta v0.0.2** — free, Android only.
+**Vouch beta v0.0.3** — free, Android only.
 
-1. On your Android phone, open **[download Vouch beta](https://github.com/yeahmituldesai/vouch/releases/download/vouch-beta-v0.0.2/vouch-beta.apk)**.
+1. On your Android phone, open **[download Vouch beta](https://github.com/yeahmituldesai/vouch/releases/download/vouch-beta-v0.0.3/vouch-beta.apk)**.
 2. Allow installing from this source when Chrome asks.
 3. Open Vouch, sign in with Google, and post your first idea.
 
