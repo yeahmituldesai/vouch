@@ -29,6 +29,11 @@ const schema = z
     GOOGLE_ANDROID_CLIENT_ID: z.string().optional().or(z.literal('')),
     // Optional error monitoring. Set a Sentry DSN to enable. Free tier is enough for a beta.
     SENTRY_DSN: z.string().optional().or(z.literal('')),
+    // App version info for in-app update checks (APK distribution, no Play Store).
+    APP_VERSION_CODE: z.coerce.number().default(2),
+    APP_VERSION_NAME: z.string().default('1.0.0'),
+    APP_DOWNLOAD_URL: z.string().default('https://github.com/yeahmituldesai/vouch/releases/download/v1.0.0-beta.1/vouch-beta.apk'),
+    APP_CHANGELOG: z.string().default('Bug fixes and performance improvements.'),
     // Optional image uploads via Cloudflare R2 / S3-compatible storage (free tier: 10GB).
     R2_ACCOUNT_ID: z.string().optional().or(z.literal('')),
     R2_ACCESS_KEY: z.string().optional().or(z.literal('')),

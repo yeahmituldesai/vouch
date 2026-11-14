@@ -37,6 +37,13 @@ export function createApp() {
   });
 
   app.get('/api/v1/config', (_req, res) => res.json({ paymentsEnabled: config.PAYMENTS_ENABLED === 'true' }));
+  app.get('/api/v1/app-version', (_req, res) => res.json({
+    versionCode: config.APP_VERSION_CODE,
+    versionName: config.APP_VERSION_NAME,
+    downloadUrl: config.APP_DOWNLOAD_URL,
+    changelog: config.APP_CHANGELOG,
+    forceUpdate: false,
+  }));
 
   const api = express.Router();
   api.use('/auth', authRoutes);
