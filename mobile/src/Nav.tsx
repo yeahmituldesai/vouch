@@ -42,7 +42,6 @@ function TabBar({ state, navigation }: BottomTabBarProps) {
           <Press key={r.key} label={r.name} scale={0.88} onPress={() => { tap(); if (!on) navigation.navigate(r.name); }} style={{ width: 48, height: 48, alignItems: 'center', justifyContent: 'center' }}>
             <Icon name={ICONS[r.name]} size={24} color={on ? C.t : C.dim} w={on ? 2.2 : 1.8} />
             {r.name === 'Alerts' && unread > 0 && !on ? <View style={{ position: 'absolute', top: 9, right: 10, width: 9, height: 9, borderRadius: 5, backgroundColor: C.t, borderWidth: 2, borderColor: C.bg }} /> : null}
-            {on ? <View style={{ position: 'absolute', bottom: 2, width: 4, height: 4, borderRadius: 2, backgroundColor: C.t }} /> : null}
           </Press>
         );
       })}

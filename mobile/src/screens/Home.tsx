@@ -10,6 +10,7 @@ import { ago, fmt } from '../format';
 import { useNav } from '../navigation';
 import { C, T } from '../theme';
 import { Avatar, Empty, Pill, Rise, success, tap } from '../ui';
+import { VouchLogo } from '../VouchLogo';
 import type { Idea } from '../types';
 
 export async function vouchApi(id: string) {
@@ -84,15 +85,18 @@ export function Home() {
 
   return (
     <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: C.bg }}>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 18, paddingTop: 6, paddingBottom: 8 }}>
-        <View style={{ flexDirection: 'row' }}>
+      <View style={{ paddingHorizontal: 18, paddingTop: 6, paddingBottom: 8 }}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+          <VouchLogo height={26} />
+          <Avatar name={user?.name || 'Me'} />
+        </View>
+        <View style={{ flexDirection: 'row', marginTop: 10 }}>
           {(['for', 'fol'] as const).map((k) => (
             <Pressable key={k} onPress={() => { tap(); setSeg(k); }} accessibilityRole="tab" accessibilityState={{ selected: seg === k }} style={{ marginRight: 14 }}>
               <Text style={{ fontSize: 26, fontWeight: '800', letterSpacing: -0.8, color: seg === k ? C.t : C.dim }}>{k === 'for' ? 'For you' : 'Following'}</Text>
             </Pressable>
           ))}
         </View>
-        <Avatar name={user?.name || 'Me'} />
       </View>
       <FlatList data={items} keyExtractor={(x) => x.id} renderItem={({ item, index }) => <Post idea={item} i={index} onVouch={onVouch} />}
         onEndReached={() => next !== null && !loading && load(false)} onEndReachedThreshold={0.6}
