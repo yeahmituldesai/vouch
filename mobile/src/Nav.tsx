@@ -2,7 +2,7 @@ import { BottomTabBarProps, createBottomTabNavigator } from '@react-navigation/b
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { DarkTheme, LinkingOptions, NavigationContainer } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
-import { View } from 'react-native';
+import { Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api } from './api';
 import { useAuth } from './auth';
@@ -67,7 +67,7 @@ const linking: LinkingOptions<RootParams> = {
 
 export function Nav() {
   const { ready, seen, user } = useAuth();
-  if (!ready) return <View style={{ flex: 1, backgroundColor: C.bg }} />;
+  if (!ready) return <View style={{ flex: 1, backgroundColor: C.bg, alignItems: 'center', justifyContent: 'center' }}><Text style={{ color: C.g, fontSize: 14 }}>Loading…</Text></View>;
   return (
     <NavigationContainer theme={{ ...DarkTheme, colors: { ...DarkTheme.colors, background: C.bg, card: C.bg, primary: C.t } }} linking={user && user.name ? linking : undefined}>
       <Stack.Navigator screenOptions={{ headerShown: false, contentStyle: { backgroundColor: C.bg }, animation: 'slide_from_right' }}>

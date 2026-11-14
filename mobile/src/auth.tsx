@@ -32,8 +32,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const t = await SecureStore.getItemAsync('vouch.token');
         if (t) {
           setToken(t);
-          const me = await api<{ user: User }>('/me');
-          setUser(me.user);
+          // Fetch user in background; don't block the UI on a slow/dead API
+          api<{ user: User }>('/me').then((me) => setUser(me.user)).catch(() => { setToken(null); });
         }
       } catch { /* signed out or offline: the Phone screen handles it */ }
       setReady(true);
