@@ -25,4 +25,4 @@ services:
       - { key: APP_VERSION_CODE, value: "3" }
       - { key: APP_VERSION_NAME, value: "1.0.0" }
       - { key: APP_DOWNLOAD_URL, value: "https://github.com/yeahmituldesai/vouch/releases/download/v1.0.0-beta.1/vouch-beta.apk" }
-      - { key: APP_CHANGELOG, value: "Push notifications, in-app update check, and black screen fix." }
+      - { key: APP_CHANGELOG, value: "Fixed update download. Push notifications and in-app update check." }
