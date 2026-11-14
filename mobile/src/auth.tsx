@@ -1,6 +1,7 @@
 import * as SecureStore from 'expo-secure-store';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { api, setOnUnauthorized, setToken } from './api';
+import { registerForPushNotifications } from './push';
 import type { User } from './types';
 
 type Ctx = {
@@ -23,6 +24,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await SecureStore.deleteItemAsync('vouch.token').catch(() => {});
   }, []);
   useEffect(() => { setOnUnauthorized(() => { signOut(); }); }, [signOut]);
+  useEffect(() => { if (user) registerForPushNotifications(); }, [user]);
 
   useEffect(() => {
     api<{ paymentsEnabled: boolean }>('/config').then((c) => setPays(c.paymentsEnabled)).catch(() => {});

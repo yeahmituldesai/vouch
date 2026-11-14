@@ -39,6 +39,12 @@ r.patch('/', wrap(async (req, res) => {
   }
 }));
 
+r.post('/push-token', wrap(async (req, res) => {
+  const b = parse(z.object({ token: z.string().min(1) }), req.body);
+  await q('UPDATE users SET push_token = $1 WHERE id = $2', [b.token, req.user!.id]);
+  res.json({ ok: true });
+}));
+
 r.post('/avatar', wrap(async (req, res) => {
   if (!imagesEnabled()) throw new HttpError(501, 'IMAGES_DISABLED', 'Image uploads are not configured');
   const b = parse(z.object({ image: z.string().min(1) }), req.body);
