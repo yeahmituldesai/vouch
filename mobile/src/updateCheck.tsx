@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
-import { Alert, Linking, Platform } from 'react-native';
+import { Alert, Platform } from 'react-native';
+import * as WebBrowser from 'expo-web-browser';
 import Constants from 'expo-constants';
 import { api } from './api';
 
@@ -16,7 +17,7 @@ export function useUpdateCheck() {
             `Version ${info.versionName} is available.\n\n${info.changelog}`,
             [
               { text: 'Later', style: 'cancel' },
-              { text: 'Download', onPress: () => Linking.openURL(info.downloadUrl) },
+              { text: 'Download', onPress: () => WebBrowser.openBrowserAsync(info.downloadUrl) },
             ],
             { cancelable: !info.forceUpdate }
           );
