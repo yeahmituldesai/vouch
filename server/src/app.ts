@@ -39,10 +39,10 @@ export function createApp() {
 
   app.get('/api/v1/config', (_req, res) => res.json({ paymentsEnabled: config.PAYMENTS_ENABLED === 'true', imagesEnabled: imagesEnabled() }));
   app.get('/api/v1/app-version', (_req, res) => res.json({
-    versionCode: 5,
-    versionName: '0.0.1',
-    downloadUrl: 'https://github.com/yeahmituldesai/vouch/releases/download/vouch-beta-v0.0.1/vouch-beta.apk',
-    changelog: 'Real Android push notifications, faster updates and stability fixes.',
+    versionCode: 6,
+    versionName: '0.0.2',
+    downloadUrl: 'https://github.com/yeahmituldesai/vouch/releases/download/vouch-beta-v0.0.2/vouch-beta.apk',
+    changelog: 'Vouch wordmark on the Home header, cleaner tab bar and the latest fixes.',
     forceUpdate: false,
   }));
 
@@ -65,7 +65,7 @@ export function createApp() {
         String(value ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] as string));
       const percent = Math.min(100, Math.round((idea.interested / idea.goal) * 100));
       const founder = idea.owner_name || `@${idea.owner_handle}`;
-      const appUrl = 'https://github.com/yeahmituldesai/vouch/releases/download/vouch-beta-v0.0.1/vouch-beta.apk';
+      const appUrl = 'https://github.com/yeahmituldesai/vouch/releases/download/vouch-beta-v0.0.2/vouch-beta.apk';
       res.type('html').send(`<!doctype html>
 <html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
