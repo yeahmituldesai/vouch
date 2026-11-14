@@ -38,10 +38,10 @@ export function createApp() {
 
   app.get('/api/v1/config', (_req, res) => res.json({ paymentsEnabled: config.PAYMENTS_ENABLED === 'true' }));
   app.get('/api/v1/app-version', (_req, res) => res.json({
-    versionCode: config.APP_VERSION_CODE,
-    versionName: config.APP_VERSION_NAME,
-    downloadUrl: config.APP_DOWNLOAD_URL,
-    changelog: config.APP_CHANGELOG,
+    versionCode: 4,
+    versionName: '1.0.0',
+    downloadUrl: 'https://github.com/yeahmituldesai/vouch/releases/download/v1.0.0-beta.1/vouch-beta.apk',
+    changelog: 'Fixed update download. Push notifications and in-app update check.',
     forceUpdate: false,
   }));
 
