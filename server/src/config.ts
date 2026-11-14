@@ -29,6 +29,9 @@ const schema = z
     GOOGLE_ANDROID_CLIENT_ID: z.string().optional().or(z.literal('')),
     // Optional error monitoring. Set a Sentry DSN to enable. Free tier is enough for a beta.
     SENTRY_DSN: z.string().optional().or(z.literal('')),
+    // Firebase Cloud Messaging (HTTP v1) service account JSON, base64 encoded.
+    // Used to deliver real Android push notifications to standalone builds.
+    FCM_SERVICE_ACCOUNT_BASE64: z.string().optional().or(z.literal('')),
     // (App version info is hardcoded in app.ts, not env-driven.)
     // Optional image uploads via Cloudflare R2 / S3-compatible storage (free tier: 10GB).
     R2_ACCOUNT_ID: z.string().optional().or(z.literal('')),

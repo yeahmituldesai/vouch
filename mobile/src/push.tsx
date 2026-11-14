@@ -18,9 +18,34 @@ export async function registerForPushNotifications() {
     }
     if (status !== 'granted') return null;
     if (Platform.OS === 'android') {
-      await Notifications.setNotificationChannelAsync('default', { name: 'default', importance: Notifications.AndroidImportance.MAX });
+      await Notifications.setNotificationChannelAsync('default', {
+        name: 'Default',
+        importance: Notifications.AndroidImportance.MAX,
+        vibrationPattern: [0, 250, 250, 250],
+        lightColor: '#7C5CFF',
+      });
     }
-    const token = (await Notifications.getExpoPushTokenAsync()).data;
+
+    // Standalone Android builds get a real FCM token, which the API delivers
+    // through Firebase Cloud Messaging (HTTP v1). Expo Go has no FCM config,
+    // so fall back to an Expo push token there.
+    let token: string | null = null;
+    if (Platform.OS === 'android') {
+      try {
+        token = (await Notifications.getDevicePushTokenAsync()).data as string;
+      } catch {
+        token = null;
+      }
+    }
+    if (!token) {
+      try {
+        token = (await Notifications.getExpoPushTokenAsync()).data;
+      } catch {
+        token = null;
+      }
+    }
+    if (!token) return null;
+
     await api('/me/push-token', { method: 'POST', body: { token } }).catch(() => {});
     return token;
   } catch {

@@ -4,6 +4,7 @@ import { q } from '../db';
 import { HttpError, parse, uuid, wrap } from '../lib/http';
 import { requireAdmin } from '../lib/auth';
 import { runSettlement } from '../lib/settle';
+import { pushConfigured, pushToUser } from '../lib/push';
 
 const r = Router();
 r.use(requireAdmin);
@@ -27,5 +28,24 @@ r.post('/users/:id/ban', wrap(async (req, res) => {
   res.json({ ok: true });
 }));
 r.post('/settlement/run', wrap(async (_req, res) => res.json(await runSettlement())));
+
+// Send a one-off push notification to a single user (beta testing / support).
+r.post('/push', wrap(async (req, res) => {
+  const b = parse(z.object({
+    email: z.string().trim().email().optional(),
+    userId: uuid.optional(),
+    title: z.string().trim().min(1).max(120),
+    body: z.string().trim().max(500).default(''),
+  }), req.body);
+  if (!b.email && !b.userId) throw new HttpError(400, 'BAD_REQUEST', 'email or userId is required');
+  const { rows } = await q(
+    'SELECT id, push_token FROM users WHERE ($1::uuid IS NOT NULL AND id = $1) OR ($2::text IS NOT NULL AND lower(email) = lower($2)) LIMIT 1',
+    [b.userId ?? null, b.email ?? null],
+  );
+  const user = rows[0];
+  if (!user) throw new HttpError(404, 'NOT_FOUND', 'User not found');
+  await pushToUser(user.id, b.title, b.body, { type: 'admin_push' });
+  res.json({ ok: true, pushConfigured: await pushConfigured(), hadToken: !!user.push_token });
+}));
 
 export default r;
