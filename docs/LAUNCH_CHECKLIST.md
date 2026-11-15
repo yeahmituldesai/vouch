@@ -10,7 +10,7 @@ Code side is launch-ready. These steps need accounts/people:
 
 ## P1
 - [x] ~~Apple Developer Program / bundle id~~ — SKIPPED. Shipping Android only (APK via EAS preview profile). iOS store release deferred. Bundle id stays `com.vouchapp.vouch`.
-- [x] EAS Android build complete — APK downloaded to `vouch-beta.apk` (84 MB). Upload to GitHub Releases manually (no `gh` CLI available). iOS/TestFlight skipped.
+- [x] EAS Android build complete — APK attached to GitHub Release v0.0.5: https://github.com/yeahmituldesai/vouch/releases/download/v0.0.5/vouch-beta.apk (84 MB). iOS/TestFlight skipped.
 - [x] ~~APNs / iOS push~~ — SKIPPED (iOS not shipping). Android push uses FCM (google-services.json already configured).
 - [ ] Sentry mobile: `cd mobile && npx expo install @sentry/react-native`, set `SENTRY_DSN`, upload source maps.
 - [ ] Error monitoring verified end-to-end.
