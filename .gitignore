@@ -10,6 +10,7 @@ server/dist
 mobile/ios
 mobile/android
 mobile/.expo
+*.apk
 
 # Dependencies
 node_modules

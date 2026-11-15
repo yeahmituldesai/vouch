@@ -8,7 +8,7 @@ import { HttpError, parse, wrap } from '../lib/http';
 import { hashOtp, normalizePhone, safeEq, signToken } from '../lib/auth';
 import { sendOtp } from '../lib/sms';
 
-export const publicUser = (u: any) => ({ id: u.id, name: u.name, handle: u.handle, bio: u.bio ?? '', avatarUrl: u.avatar_url ?? null });
+export const publicUser = (u: any) => ({ id: u.id, name: u.name, handle: u.handle, bio: u.bio ?? '', avatarUrl: u.avatar_url ?? null, bannerUrl: u.banner_url ?? null, location: u.location ?? '', website: u.website ?? '', role: u.role ?? 'member', createdAt: u.created_at });
 const r = Router();
 const isReview = (phone: string) =>
   config.NODE_ENV !== 'production' && !!config.REVIEW_PHONE && !!config.REVIEW_CODE && phone === normalizePhone(config.REVIEW_PHONE);

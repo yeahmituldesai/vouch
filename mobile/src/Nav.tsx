@@ -1,6 +1,7 @@
 import { BottomTabBarProps, createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { DarkTheme, LinkingOptions, NavigationContainer } from '@react-navigation/native';
+import { DarkTheme, LinkingOptions, NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
+import * as Notifications from 'expo-notifications';
 import React, { useEffect, useState } from 'react';
 import { Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -15,12 +16,16 @@ import { CreateScreen } from './screens/Create';
 import { DemandScreen } from './screens/Demand';
 import { EditProfile } from './screens/EditProfile';
 import { Explore } from './screens/Explore';
+import { Followers } from './screens/Followers';
+import { Following } from './screens/Following';
 import { Home } from './screens/Home';
 import { IdeaScreen } from './screens/Idea';
 import { Onboarding } from './screens/Onboarding';
 import { PhoneScreen } from './screens/Phone';
 import { PreOrderScreen } from './screens/PreOrder';
 import { Profile } from './screens/Profile';
+import { Settings } from './screens/Settings';
+import { UserProfile } from './screens/UserProfile';
 import type { RootParams } from './types';
 
 const Stack = createNativeStackNavigator<RootParams>();
@@ -66,9 +71,19 @@ const linking: LinkingOptions<RootParams> = {
 
 export function Nav() {
   const { ready, seen, user, paymentsEnabled: pays } = useAuth();
+  const navRef = useNavigationContainerRef<RootParams>();
+  useEffect(() => {
+    const sub = Notifications.addNotificationResponseReceivedListener((resp) => {
+      const data = resp.notification.request.content.data as any;
+      if (!navRef.isReady()) return;
+      if (data?.ideaId) navRef.navigate('Idea', { id: data.ideaId });
+      else if (data?.type === 'app_update') navRef.navigate('Tabs');
+    });
+    return () => sub.remove();
+  }, [navRef]);
   if (!ready) return <View style={{ flex: 1, backgroundColor: C.bg, alignItems: 'center', justifyContent: 'center' }}><Text style={{ color: C.g, fontSize: 14 }}>Loading…</Text></View>;
   return (
-    <NavigationContainer theme={{ ...DarkTheme, colors: { ...DarkTheme.colors, background: C.bg, card: C.bg, primary: C.t } }} linking={user && user.name ? linking : undefined}>
+    <NavigationContainer ref={navRef} theme={{ ...DarkTheme, colors: { ...DarkTheme.colors, background: C.bg, card: C.bg, primary: C.t } }} linking={user && user.name ? linking : undefined}>
       <Stack.Navigator screenOptions={{ headerShown: false, contentStyle: { backgroundColor: C.bg }, animation: 'slide_from_right' }}>
         {!seen ? <Stack.Screen name="Onboarding" component={Onboarding} options={{ animation: 'fade' }} />
           : !user ? <Stack.Screen name="Phone" component={PhoneScreen} options={{ animation: 'fade' }} />
@@ -81,6 +96,10 @@ export function Nav() {
               <Stack.Screen name="Create" component={CreateScreen} options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
               <Stack.Screen name="Demand" component={DemandScreen} />
               <Stack.Screen name="EditProfile" component={() => <EditProfile />} />
+              <Stack.Screen name="UserProfile" component={UserProfile} />
+              <Stack.Screen name="Followers" component={Followers} />
+              <Stack.Screen name="Following" component={Following} />
+              <Stack.Screen name="Settings" component={Settings} />
             </>)}
       </Stack.Navigator>
     </NavigationContainer>

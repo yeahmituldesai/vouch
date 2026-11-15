@@ -2,9 +2,27 @@ import { Router } from 'express';
 import { pool, q } from '../db';
 import { HttpError, parse, uuid, wrap } from '../lib/http';
 import { requireAuth } from '../lib/auth';
+import { publicUser } from './auth';
+import { fetchIdeas } from '../lib/ideas';
 import { notify } from '../lib/notify';
 
 const r = Router();
+
+// Public-ish profile (auth required for viewer context)
+r.get('/users/:id', requireAuth, wrap(async (req, res) => {
+  const id = parse(uuid, req.params.id);
+  const u = (await q('SELECT * FROM users WHERE id = $1', [id])).rows[0];
+  if (!u || u.deleted_at) throw new HttpError(404, 'NOT_FOUND', 'User not found');
+  if (u.is_banned) throw new HttpError(404, 'NOT_FOUND', 'User not found');
+  const c = (await q(
+    `SELECT (SELECT count(*)::int FROM ideas WHERE owner_id = $1 AND status <> 'removed') AS ideas,
+            (SELECT count(*)::int FROM vouches WHERE user_id = $1) AS vouches,
+            (SELECT count(*)::int FROM follows WHERE followee_id = $1) AS followers,
+            (SELECT count(*)::int FROM follows WHERE follower_id = $1) AS following`,
+    [id])).rows[0];
+  const viewerFollowing = (await q('SELECT 1 FROM follows WHERE follower_id = $1 AND followee_id = $2', [req.user!.id, id])).rows[0] ? true : false;
+  res.json({ user: { ...publicUser(u), phone: undefined }, counts: { ...c, unread: 0 }, viewer: { following: viewerFollowing, isSelf: req.user!.id === id } });
+}));
 
 r.post('/users/:id/follow', requireAuth, wrap(async (req, res) => {
   const id = parse(uuid, req.params.id);
@@ -19,6 +37,24 @@ r.post('/users/:id/follow', requireAuth, wrap(async (req, res) => {
   }
   const followers = (await q('SELECT count(*)::int AS n FROM follows WHERE followee_id = $1', [id])).rows[0].n;
   res.json({ following, followers });
+}));
+
+
+r.get('/users/:id/ideas', requireAuth, wrap(async (req, res) => {
+  const id = parse(uuid, req.params.id);
+  const ideas = await fetchIdeas(req.user!.id, `i.owner_id = $2 AND i.status <> 'removed'`, [id]);
+  res.json({ ideas });
+}));
+
+r.get('/users/:id/followers', requireAuth, wrap(async (req, res) => {
+  const id = parse(uuid, req.params.id);
+  const { rows } = await q(`SELECT u.* FROM follows f JOIN users u ON u.id = f.follower_id WHERE f.followee_id = $1 ORDER BY f.created_at DESC LIMIT 100`, [id]);
+  res.json({ users: rows.map(publicUser) });
+}));
+r.get('/users/:id/following', requireAuth, wrap(async (req, res) => {
+  const id = parse(uuid, req.params.id);
+  const { rows } = await q(`SELECT u.* FROM follows f JOIN users u ON u.id = f.followee_id WHERE f.follower_id = $1 ORDER BY f.created_at DESC LIMIT 100`, [id]);
+  res.json({ users: rows.map(publicUser) });
 }));
 
 r.post('/users/:id/block', requireAuth, wrap(async (req, res) => {

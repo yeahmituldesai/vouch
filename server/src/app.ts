@@ -103,6 +103,54 @@ export function createApp() {
     }
   });
 
+  // Public landing page for shared profile links (the app shares /u/:handle URLs).
+  app.get('/u/:handle', async (req, res, next) => {
+    try {
+      if (!/^[a-z0-9_]{3,20}$/i.test(req.params.handle)) return next();
+      const { rows } = await q(
+        `SELECT u.id, u.name, u.handle, u.bio, u.avatar_url, u.role, u.created_at,
+                (SELECT count(*)::int FROM ideas i WHERE i.owner_id = u.id AND i.status <> 'removed') AS ideas,
+                (SELECT count(*)::int FROM follows f WHERE f.followee_id = u.id) AS followers
+           FROM users u WHERE lower(u.handle) = lower($1) AND u.deleted_at IS NULL`,
+        [req.params.handle],
+      );
+      const u = rows[0];
+      if (!u) return next();
+      const esc = (value: unknown) =>
+        String(value ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] as string));
+      const appUrl = APP_VERSION.downloadUrl;
+      res.type('html').send(`<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${esc(u.name || '@' + u.handle)} · Vouch</title>
+<meta name="description" content="${esc(u.bio || 'Vouch profile').slice(0, 160)}">
+<style>
+  :root { color-scheme: dark; }
+  body { margin:0; background:#000; color:#fff; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; }
+  main { max-width:560px; margin:0 auto; padding:40px 22px 56px; text-align:center; }
+  .avatar { width:96px; height:96px; border-radius:48px; background:#1a1a1c; margin:0 auto 14px; object-fit:cover; }
+  h1 { font-size:26px; margin:0 0 4px; }
+  .handle { color:#a1a1aa; font-size:14px; margin-bottom:12px; }
+  .bio { color:#d1d1d6; font-size:15px; line-height:1.5; margin:12px 0 18px; }
+  .stats { display:flex; justify-content:center; gap:30px; color:#a1a1aa; font-size:13px; margin-bottom:24px; }
+  .stats b { display:block; color:#fff; font-size:20px; }
+  a.cta { display:block; text-align:center; background:#fff; color:#000; text-decoration:none; font-weight:700; padding:16px; border-radius:16px; }
+  a.ghost { display:block; text-align:center; margin-top:12px; color:#a1a1aa; font-size:13px; text-decoration:none; }
+</style>
+</head><body><main>
+  ${u.avatar_url ? `<img class="avatar" src="${esc(u.avatar_url)}" alt="">` : `<div class="avatar"></div>`}
+  <h1>${esc(u.name || '@' + u.handle)}</h1>
+  <div class="handle">@${esc(u.handle)}${u.role && u.role !== 'member' ? ' · ' + esc(u.role) : ''}</div>
+  ${u.bio ? `<p class="bio">${esc(u.bio)}</p>` : ''}
+  <div class="stats"><div><b>${u.ideas}</b>ideas</div><div><b>${u.followers}</b>followers</div></div>
+  <a class="cta" href="${appUrl}">Get Vouch</a>
+  <a class="ghost" href="vouch://u/${esc(u.handle)}">Already have the app? Open this profile</a>
+</main></body></html>`);
+    } catch (error) {
+      next(error);
+    }
+  });
+
   const api = express.Router();
   api.use('/auth', authRoutes);
   api.use('/me', meRoutes);

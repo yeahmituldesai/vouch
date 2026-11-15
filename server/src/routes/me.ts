@@ -18,6 +18,7 @@ r.get('/', wrap(async (req, res) => {
             (SELECT count(*)::int FROM vouches WHERE user_id = $1) AS vouches,
             ${PAY ? "(SELECT count(*)::int FROM orders WHERE user_id = $1 AND status IN ('paid','refunded'))" : '(SELECT count(*)::int FROM wants WHERE user_id = $1)'} AS preorders,
             (SELECT count(*)::int FROM follows WHERE followee_id = $1) AS followers,
+            (SELECT count(*)::int FROM follows WHERE follower_id = $1) AS following,
             (SELECT count(*)::int FROM notifications WHERE user_id = $1 AND read_at IS NULL) AS unread`, [id])).rows[0];
   res.json({ user: { ...publicUser(u), phone: u.phone }, counts: c });
 }));
@@ -27,11 +28,17 @@ r.patch('/', wrap(async (req, res) => {
     name: z.string().trim().min(1).max(50).optional(),
     handle: z.string().regex(/^[a-z0-9_]{3,20}$/, 'Use 3 to 20 lowercase letters, numbers or underscores').optional(),
     bio: z.string().trim().max(160).optional(),
+    location: z.string().trim().max(60).optional(),
+    website: z.string().trim().max(120).optional(),
+    bannerUrl: z.string().trim().max(500).optional(),
+    role: z.enum(['member', 'founder', 'backer']).optional(),
   }), req.body);
   try {
     const u = (await q(
-      `UPDATE users SET name = coalesce($2, name), handle = coalesce($3, handle), bio = coalesce($4, bio) WHERE id = $1 RETURNING *`,
-      [req.user!.id, b.name ?? null, b.handle ?? null, b.bio ?? null])).rows[0];
+      `UPDATE users SET name = coalesce($2, name), handle = coalesce($3, handle), bio = coalesce($4, bio),
+         location = coalesce($5, location), website = coalesce($6, website), banner_url = coalesce($7, banner_url),
+         role = coalesce($8, role) WHERE id = $1 RETURNING *`,
+      [req.user!.id, b.name ?? null, b.handle ?? null, b.bio ?? null, b.location ?? null, b.website ?? null, b.bannerUrl ?? null, b.role ?? null])).rows[0];
     res.json({ user: publicUser(u) });
   } catch (e: any) {
     if (e.code === '23505') throw new HttpError(409, 'HANDLE_TAKEN', 'That handle is already taken');
@@ -55,6 +62,13 @@ r.post('/avatar', wrap(async (req, res) => {
   const b = parse(z.object({ image: z.string().min(1) }), req.body);
   const url = await uploadImage(b.image, `avatars/${req.user!.id}`);
   const u = (await q('UPDATE users SET avatar_url = $1 WHERE id = $2 RETURNING *', [url, req.user!.id])).rows[0];
+  res.json({ user: publicUser(u) });
+}));
+r.post('/banner', wrap(async (req, res) => {
+  if (!imagesEnabled()) throw new HttpError(501, 'IMAGES_DISABLED', 'Image uploads are not configured');
+  const b = parse(z.object({ image: z.string().min(1) }), req.body);
+  const url = await uploadImage(b.image, `banners/${req.user!.id}`);
+  const u = (await q('UPDATE users SET banner_url = $1 WHERE id = $2 RETURNING *', [url, req.user!.id])).rows[0];
   res.json({ user: publicUser(u) });
 }));
 
