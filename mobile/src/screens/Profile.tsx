@@ -9,6 +9,7 @@ import { inr } from '../format';
 import { useNav } from '../navigation';
 import { C, T } from '../theme';
 import { Avatar, Button, Empty, Pill, Rise, tap } from '../ui';
+import { Icon } from '../Icon';
 import { Tile } from './Explore';
 import type { Idea, Order, User } from '../types';
 
@@ -80,14 +81,14 @@ export function Profile() {
             {user?.avatarUrl ? <Image source={{ uri: user.avatarUrl }} style={{ width: 78, height: 78, borderRadius: 39 }} /> : <Avatar name={user?.name || 'Me'} size={78} />}
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Pressable onPress={shareProfile} style={{ width: 38, height: 38, borderRadius: 19, borderWidth: 1, borderColor: C.ln, alignItems: 'center', justifyContent: 'center', marginRight: 8 }}>
-              <Text style={{ color: C.t, fontSize: 16 }}>↗</Text>
+            <Pressable onPress={shareProfile} accessibilityLabel="Share profile" style={{ width: 38, height: 38, borderRadius: 19, borderWidth: 1, borderColor: C.ln, alignItems: 'center', justifyContent: 'center', marginRight: 8 }}>
+              <Icon name="share" size={18} color={C.t} w={2} />
             </Pressable>
             <Pressable onPress={() => nav.navigate('EditProfile')} style={{ paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: C.ln }}>
               <Text style={{ color: C.t, fontSize: 14, fontWeight: '700' }}>Edit profile</Text>
             </Pressable>
-            <Pressable onPress={menu} style={{ width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center', marginLeft: 8 }}>
-              <Text style={{ color: C.t, fontSize: 18 }}>⋯</Text>
+            <Pressable onPress={menu} accessibilityLabel="More" style={{ width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center', marginLeft: 8 }}>
+              <Icon name="more" size={18} color={C.t} w={2} />
             </Pressable>
           </View>
         </View>

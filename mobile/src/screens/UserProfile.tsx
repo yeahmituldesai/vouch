@@ -9,6 +9,7 @@ import { inr } from '../format';
 import { useNav } from '../navigation';
 import { C, T } from '../theme';
 import { Avatar, Empty, tap } from '../ui';
+import { Icon } from '../Icon';
 import { Tile } from './Explore';
 import type { Idea, RootParams, User } from '../types';
 
@@ -67,8 +68,8 @@ export function UserProfile() {
           <Text style={{ color: C.t, fontSize: 18 }}>←</Text>
         </Pressable>
         <Text style={{ color: C.t, fontSize: 16, fontWeight: '700' }}>{user.name}</Text>
-        <Pressable onPress={shareProfile} style={{ width: 38, height: 38, borderRadius: 19, backgroundColor: C.s2, alignItems: 'center', justifyContent: 'center' }}>
-          <Text style={{ color: C.t, fontSize: 16 }}>↗</Text>
+        <Pressable onPress={shareProfile} accessibilityLabel="Share profile" style={{ width: 38, height: 38, borderRadius: 19, backgroundColor: C.s2, alignItems: 'center', justifyContent: 'center' }}>
+          <Icon name="share" size={18} color={C.t} w={2} />
         </Pressable>
       </View>
       <ScrollView contentContainerStyle={{ paddingBottom: 120 }} refreshControl={<RefreshControl tintColor="#fff" refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} />}>
@@ -79,8 +80,8 @@ export function UserProfile() {
           </View>
           {!isSelf ? (
             <View style={{ flexDirection: 'row' }}>
-              <Pressable onPress={block} style={{ width: 38, height: 38, borderRadius: 19, borderWidth: 1, borderColor: C.ln, alignItems: 'center', justifyContent: 'center', marginRight: 8 }}>
-                <Text style={{ color: C.t, fontSize: 16 }}>⋯</Text>
+              <Pressable onPress={block} accessibilityLabel="More" style={{ width: 38, height: 38, borderRadius: 19, borderWidth: 1, borderColor: C.ln, alignItems: 'center', justifyContent: 'center', marginRight: 8 }}>
+                <Icon name="more" size={18} color={C.t} w={2} />
               </Pressable>
               <Pressable onPress={toggleFollow} style={{ paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, backgroundColor: following ? 'transparent' : C.t, borderWidth: following ? 1 : 0, borderColor: C.ln }}>
                 <Text style={{ color: following ? C.t : '#000', fontSize: 14, fontWeight: '700' }}>{following ? 'Following' : 'Follow'}</Text>

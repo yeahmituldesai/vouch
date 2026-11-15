@@ -10,7 +10,7 @@ Reports flow up to the Founder. The personal accountant (Ledger) tracks work don
 |---|---|---|
 | Forge | CTO / Engineering Lead | Codebase, architecture, builds, releases |
 | Compass | Product Lead | Roadmap, specs, prioritization |
-| Pixel | Design Lead | UI/UX, brand, assets |
+| Pixel | Design Lead | UI/UX, brand, assets. Uses the `apple-design` skill (Apple HIG reviewer) for all UI/UX reviews and improvements. |
 | Echo | Growth & Marketing | Acquisition, messaging, launches |
 | Haven | Community & Support | User feedback, moderation, support |
 | Insight | Data & Analytics | Metrics, experiments, reporting |
