@@ -19,7 +19,7 @@ async function checkForUpdate() {
   if (Platform.OS !== 'android') return;
   try {
     const info = await api<VersionInfo>('/app-version');
-    const current = Constants.expoConfig?.android?.versionCode ?? 1;
+    const current = Number(Constants.nativeBuildVersion ?? Constants.expoConfig?.android?.versionCode ?? 1);
     if (info.versionCode <= current || promptedFor === info.versionCode) return;
     promptedFor = info.versionCode;
     Alert.alert(
