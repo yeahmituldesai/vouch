@@ -39,7 +39,7 @@ after(async () => { server.close(); await pool.end(); });
 
 describe('beta mode', () => {
   test('config says payments are off and payment routes do not exist', async () => {
-    assert.deepEqual((await api('GET', '/api/v1/config')).json, { paymentsEnabled: false });
+    assert.deepEqual((await api('GET', '/api/v1/config')).json, { paymentsEnabled: false, imagesEnabled: false });
     const f = await signup('F'); const b = await signup('B');
     const created = await mk(f.token);
     assert.equal(created.status, 201);
