@@ -5,12 +5,11 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect, useRoute } from '@react-navigation/native';
 import { api, ApiError } from '../api';
 import { useAuth } from '../auth';
-import { inr } from '../format';
+import { ago, fmt, inr } from '../format';
 import { useNav } from '../navigation';
 import { C, T } from '../theme';
-import { Avatar, Empty, tap } from '../ui';
+import { Avatar, Empty, Pill, Rise, tap } from '../ui';
 import { Icon } from '../Icon';
-import { Tile } from './Explore';
 import type { Idea, RootParams, User } from '../types';
 
 const WEB = process.env.EXPO_PUBLIC_WEB_URL ?? 'https://vouch.example.com';
@@ -24,7 +23,6 @@ export function UserProfile() {
   const [counts, setCounts] = useState<any>(null);
   const [ideas, setIdeas] = useState<Idea[]>([]);
   const [following, setFollowing] = useState(false);
-  const [tab, setTab] = useState('Posts');
   const [refreshing, setRefreshing] = useState(false);
   const [err, setErr] = useState('');
 
@@ -50,6 +48,10 @@ export function UserProfile() {
   async function shareProfile() {
     try { await Share.share({ message: `Check out ${user?.name} on Vouch\n${WEB}/u/${user?.handle}` }); } catch { /* ignore */ }
   }
+  function vouchAction(ideaId: string) {
+    tap();
+    void api<{ vouched: boolean; count: number }>(`/ideas/${ideaId}/vouch`, { method: 'POST' }).catch(() => {});
+  }
 
   if (!user) return (
     <SafeAreaView style={{ flex: 1, backgroundColor: C.bg, alignItems: 'center', justifyContent: 'center', padding: 30 }}>
@@ -61,70 +63,112 @@ export function UserProfile() {
   const isSelf = me?.id === id;
   const joined = user.createdAt ? new Date(user.createdAt).toLocaleDateString(undefined, { month: 'long', year: 'numeric' }) : null;
 
+  // X-style single-column post with inline interaction row.
+  const PostRow = ({ idea }: { idea: Idea }) => (
+    <Pressable onPress={() => nav.navigate('Idea', { id: idea.id })} accessibilityRole="button" accessibilityLabel={idea.name}
+      style={{ flexDirection: 'row', paddingVertical: 13, paddingHorizontal: 18, borderBottomWidth: 1, borderBottomColor: C.ln }}>
+      <Avatar name={idea.owner.name || idea.owner.handle} url={idea.owner.avatarUrl} />
+      <View style={{ flex: 1, marginLeft: 10 }}>
+        <Text style={{ color: C.t, fontSize: 14, fontWeight: '600' }}>{idea.owner.name || '@' + idea.owner.handle}<Text style={{ color: C.g, fontWeight: '400', marginLeft: 4 }}> · {ago(idea.createdAt)}</Text></Text>
+        <Text style={{ color: C.t, fontSize: 15, fontWeight: '700', marginTop: 3 }}>{idea.name}</Text>
+        <Text numberOfLines={2} style={{ color: '#d1d1d6', fontSize: 14, lineHeight: 20, marginTop: 2 }}>{idea.description}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 11 }}>
+          <Pressable accessibilityLabel="Reply" style={{ marginRight: 16 }}>
+            <Icon name="chat" size={20} color={C.g} w={2} />
+            <Text style={{ color: C.g, fontSize: 13, marginTop: 2 }}>{fmt(idea.stats.comments)}</Text>
+          </Pressable>
+          <Pressable onPress={() => { tap(); }} accessibilityLabel="Repost" style={{ marginRight: 16 }}>
+            <Icon name="x" size={20} color={C.g} w={2} />
+            <Text style={{ color: C.g, fontSize: 13, marginTop: 2 }}>{fmt(idea.stats.vouches)}</Text>
+          </Pressable>
+          <Pressable onPress={() => vouchAction(idea.id)} accessibilityLabel={idea.viewer.vouched ? 'Liked' : 'Like'} style={{ marginRight: 16 }}>
+            <Icon name="vouch" size={20} color={idea.viewer.vouched ? '#ff3b30' : C.g} w={2} />
+            <Text style={{ color: idea.viewer.vouched ? '#ff3b30' : C.g, fontSize: 13, marginTop: 2 }}>{fmt(idea.stats.vouches)}</Text>
+          </Pressable>
+          <Pressable onPress={() => Share.share({ message: `Would you buy ${idea.name}? Vouch for it on Vouch.\n${WEB}/i/${idea.id}` }) } accessibilityLabel="Share" style={{ marginRight: 16 }}>
+            <Icon name="share" size={20} color={C.g} w={2} />
+          </Pressable>
+        </View>
+      </View>
+    </Pressable>
+  );
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }} edges={['top']}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 12, height: 52 }}>
-        <Pressable onPress={() => nav.goBack()} style={{ width: 38, height: 38, borderRadius: 19, backgroundColor: C.s2, alignItems: 'center', justifyContent: 'center' }}>
-          <Text style={{ color: C.t, fontSize: 18 }}>←</Text>
+      {/* X-style header: black bar with back arrow + title */}
+      <View style={{ backgroundColor: '#000', paddingHorizontal: 16, paddingTop: 6, paddingBottom: 4 }}>
+        <Pressable onPress={() => nav.goBack()} accessibilityLabel="Back" style={{ flexDirection: 'row', alignItems: 'center', paddingTop: 6 }}>
+          <Icon name="back" size={18} color={C.t} w={2} />
         </Pressable>
-        <Text style={{ color: C.t, fontSize: 16, fontWeight: '700' }}>{user.name}</Text>
-        <Pressable onPress={shareProfile} accessibilityLabel="Share profile" style={{ width: 38, height: 38, borderRadius: 19, backgroundColor: C.s2, alignItems: 'center', justifyContent: 'center' }}>
+        <Text style={{ color: C.t, fontSize: 18, fontWeight: '600', marginLeft: 6 }}>{user.name}</Text>
+        <Pressable onPress={shareProfile} accessibilityLabel="Share profile" style={{ width: 38, height: 38, borderRadius: 19, borderWidth: 1, borderColor: C.ln, alignItems: 'center', justifyContent: 'center', marginLeft: 16 }}>
           <Icon name="share" size={18} color={C.t} w={2} />
         </Pressable>
       </View>
-      <ScrollView contentContainerStyle={{ paddingBottom: 120 }} refreshControl={<RefreshControl tintColor="#fff" refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} />}>
-        {user.bannerUrl ? <Image source={{ uri: user.bannerUrl }} style={{ width: '100%', height: 150 }} resizeMode="cover" /> : <LinearGradient colors={['#1a1a1c', '#0c0c0d']} style={{ height: 150 }} />}
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', paddingHorizontal: 16, marginTop: -24 }}>
-          <View style={{ borderWidth: 3, borderColor: C.bg, borderRadius: 40, overflow: 'hidden' }}>
-            {user.avatarUrl ? <Image source={{ uri: user.avatarUrl }} style={{ width: 78, height: 78, borderRadius: 39 }} /> : <Avatar name={user.name} size={78} />}
-          </View>
-          {!isSelf ? (
-            <View style={{ flexDirection: 'row' }}>
-              <Pressable onPress={block} accessibilityLabel="More" style={{ width: 38, height: 38, borderRadius: 19, borderWidth: 1, borderColor: C.ln, alignItems: 'center', justifyContent: 'center', marginRight: 8 }}>
-                <Icon name="more" size={18} color={C.t} w={2} />
-              </Pressable>
-              <Pressable onPress={toggleFollow} style={{ paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, backgroundColor: following ? 'transparent' : C.t, borderWidth: following ? 1 : 0, borderColor: C.ln }}>
-                <Text style={{ color: following ? C.t : '#000', fontSize: 14, fontWeight: '700' }}>{following ? 'Following' : 'Follow'}</Text>
-              </Pressable>
-            </View>
-          ) : (
-            <Pressable onPress={() => nav.navigate('EditProfile')} style={{ paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: C.ln }}>
-              <Text style={{ color: C.t, fontSize: 14, fontWeight: '700' }}>Edit profile</Text>
-            </Pressable>
-          )}
+
+      {/* Banner */}
+      {user.bannerUrl ? <Image source={{ uri: user.bannerUrl }} style={{ width: '100%', height: 150 }} resizeMode="cover" /> : <LinearGradient colors={['#1a1a1c', '#0c0c0d']} style={{ height: 150 }} />}
+
+      {/* Header action row */}
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, marginTop: -24 }}>
+        <View style={{ borderWidth: 3, borderColor: C.bg, borderRadius: 40, overflow: 'hidden' }}>
+          {user.avatarUrl ? <Image source={{ uri: user.avatarUrl }} style={{ width: 78, height: 78, borderRadius: 39, resizeMode: 'cover' }} /> : <Avatar name={user.name} size={78} />}
         </View>
-        <View style={{ paddingHorizontal: 16, marginTop: 10 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Text style={[T.h1, { fontSize: 22 }]}>{user.name}</Text>
-            {user.role && user.role !== 'member' ? <View style={{ marginLeft: 8, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10, backgroundColor: C.s2 }}><Text style={{ color: C.dim, fontSize: 11, fontWeight: '700', textTransform: 'uppercase' }}>{user.role}</Text></View> : null}
-          </View>
-          <Text style={T.sm}>@{user.handle}</Text>
-          {user.bio ? <Text style={{ color: '#d1d1d6', fontSize: 14.5, lineHeight: 21, marginTop: 8 }}>{user.bio}</Text> : null}
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginTop: 8 }}>
-            {user.location ? <Text style={[T.sm, { marginRight: 12 }]}>📍 {user.location}</Text> : null}
-            {user.website ? <Text style={[T.sm, { marginRight: 12, color: C.t }]}>🔗 {user.website}</Text> : null}
-            {joined ? <Text style={T.sm}>🗓 Joined {joined}</Text> : null}
-          </View>
-          <View style={{ flexDirection: 'row', marginTop: 12 }}>
-            <Pressable onPress={() => nav.navigate('Following', { id, name: user.name })} style={{ marginRight: 22 }}>
-              <Text style={{ color: C.t, fontSize: 15, fontWeight: '700' }}>{counts?.following ?? 0} <Text style={{ color: C.dim, fontWeight: '400', fontSize: 14 }}>Following</Text></Text>
+        {!isSelf ? (
+          <View style={{ flexDirection: 'row' }}>
+            <Pressable onPress={block} accessibilityLabel="More" style={{ width: 38, height: 38, borderRadius: 19, borderWidth: 1, borderColor: C.ln, alignItems: 'center', justifyContent: 'center', marginRight: 8 }}>
+              <Icon name="more" size={18} color={C.t} w={2} />
             </Pressable>
-            <Pressable onPress={() => nav.navigate('Followers', { id, name: user.name })} style={{ marginRight: 22 }}>
-              <Text style={{ color: C.t, fontSize: 15, fontWeight: '700' }}>{counts?.followers ?? 0} <Text style={{ color: C.dim, fontWeight: '400', fontSize: 14 }}>Followers</Text></Text>
+            <Pressable onPress={toggleFollow} accessibilityLabel={following ? 'Following' : 'Follow'} style={{ paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, backgroundColor: following ? 'transparent' : C.t, borderWidth: following ? 1 : 0, borderColor: C.ln }}>
+              <Text style={{ color: following ? C.t : '#000', fontSize: 14, fontWeight: '700' }}>{following ? 'Following' : 'Follow'}</Text>
             </Pressable>
           </View>
-          <View style={{ flexDirection: 'row', marginTop: 16, borderBottomWidth: 1, borderBottomColor: C.ln }}>
-            {['Posts'].map((t) => (
-              <View key={t} style={{ flex: 1, alignItems: 'center', paddingVertical: 12, borderBottomWidth: 2, borderBottomColor: C.t }}>
-                <Text style={{ color: C.t, fontSize: 14, fontWeight: '600' }}>{t}</Text>
-              </View>
-            ))}
+        ) : (
+          <Pressable onPress={() => nav.navigate('EditProfile')} accessibilityLabel="Edit profile" style={{ paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: C.ln }}>
+            <Text style={{ color: C.t, fontSize: 14, fontWeight: '700' }}>Edit profile</Text>
+          </Pressable>
+        )}
+      </View>
+
+      <View style={{ paddingHorizontal: 16, marginTop: 10 }}>
+        <Text style={{ color: C.t, fontSize: 22, fontWeight: '800' }}>{user.name}</Text>
+        {user.role && user.role !== 'member' ? (
+          <View style={{ marginTop: 3, marginRight: 8, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10, backgroundColor: C.s2 }}>
+            <Text style={{ color: C.dim, fontSize: 11, fontWeight: '700', textTransform: 'uppercase' }}>{user.role}</Text>
           </View>
-          {ideas.length ? (
-            <View style={{ marginTop: 14, flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>{ideas.map((x, i) => <View key={x.id} style={{ width: '48.5%' }}><Tile idea={x} i={i} /></View>)}</View>
-          ) : <Empty title="No posts yet" sub="Ideas they post will show up here." />}
+        ) : null}
+        <Text style={{ color: C.dim, fontSize: 14, marginTop: 3 }}>@{user.handle}</Text>
+        {user.bio ? <Text style={{ color: '#d1d1d6', fontSize: 14.5, lineHeight: 21, marginTop: 8 }}>{user.bio}</Text> : null}
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginTop: 8 }}>
+          {user.location ? <Text style={[T.sm, { marginRight: 12 }]}>📍 {user.location}</Text> : null}
+          {user.website ? <Text style={[T.sm, { marginRight: 12, color: C.t }]}>🔗 {user.website}</Text> : null}
+          {joined ? <Text style={T.sm}>🗓 Joined {joined}</Text> : null}
         </View>
-      </ScrollView>
+
+        {/* Stats */}
+        <View style={{ flexDirection: 'row', marginTop: 13 }}>
+          <Pressable onPress={() => nav.navigate('Following', { id, name: user.name })} style={{ marginRight: 26 }}>
+            <Text style={{ color: C.t, fontWeight: '800' }}>{counts?.following ?? 0}</Text>
+            <Text style={{ color: C.dim, fontSize: 14 }}>Following</Text>
+          </Pressable>
+          <Pressable onPress={() => nav.navigate('Followers', { id, name: user.name })}>
+            <Text style={{ color: C.t, fontWeight: '800' }}>{counts?.followers ?? 0}</Text>
+            <Text style={{ color: C.dim, fontSize: 14 }}>Followers</Text>
+          </Pressable>
+        </View>
+
+        {/* X-style tabs */}
+        <View style={{ flexDirection: 'row', marginTop: 16, borderBottomWidth: 2, borderBottomColor: C.ln, height: 40 }}>
+          <Pressable accessibilityRole="tab" accessibilityState={{ selected: true }} style={{ flex: 1, alignItems: 'center', justifyContent: 'center', borderBottomWidth: 2, borderBottomColor: C.t }}>
+            <Text style={{ color: C.t, fontSize: 14, fontWeight: '700' }}>Posts</Text>
+          </Pressable>
+        </View>
+
+        {/* Content: single column */}
+        {ideas.length ? (
+          ideas.map((x, i) => <Rise key={x.id} i={i}><PostRow idea={x} /></Rise>)
+        ) : <Empty title="No posts yet" sub="Ideas they post will show up here." />}
+      </View>
     </SafeAreaView>
   );
 }
