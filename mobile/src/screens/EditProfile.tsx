@@ -6,7 +6,7 @@ import { api, ApiError } from '../api';
 import { useAuth } from '../auth';
 import { useNav } from '../navigation';
 import { C, T } from '../theme';
-import { Button, ErrorText, Field, Header, Rise, tap } from '../ui';
+import { Button, ErrorText, Field, Header, Rise } from '../ui';
 
 export function EditProfile({ setup }: { setup?: boolean }) {
   const nav = useNav();
@@ -16,7 +16,6 @@ export function EditProfile({ setup }: { setup?: boolean }) {
   const [bio, setBio] = useState(user?.bio ?? '');
   const [location, setLocation] = useState(user?.location ?? '');
   const [website, setWebsite] = useState(user?.website ?? '');
-  const [role, setRole] = useState(user?.role ?? 'member');
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
   async function uploadAvatar() {
@@ -40,7 +39,7 @@ export function EditProfile({ setup }: { setup?: boolean }) {
   async function save() {
     setBusy(true); setErr('');
     try {
-      await api('/me', { method: 'PATCH', body: { name: name.trim(), handle: handle.trim().toLowerCase(), bio: bio.trim(), location: location.trim(), website: website.trim(), role } });
+      await api('/me', { method: 'PATCH', body: { name: name.trim(), handle: handle.trim().toLowerCase(), bio: bio.trim(), location: location.trim(), website: website.trim() } });
       await refresh();
       if (!setup) nav.goBack();
     } catch (e) { setErr(e instanceof ApiError ? e.message : 'Something went wrong'); }
@@ -66,16 +65,6 @@ export function EditProfile({ setup }: { setup?: boolean }) {
             <Field label="Bio" value={bio} onChangeText={setBio} placeholder="One line about you" maxLength={160} multiline />
             <Field label="Location" value={location} onChangeText={setLocation} placeholder="City, Country" maxLength={60} />
             <Field label="Website" value={website} onChangeText={setWebsite} placeholder="https://…" maxLength={120} autoCapitalize="none" autoCorrect={false} />
-            <View style={{ marginTop: 16 }}>
-              <Text style={{ color: C.g, fontSize: 12.5, fontWeight: '600', marginBottom: 6 }}>Role</Text>
-              <View style={{ flexDirection: 'row', gap: 8 }}>
-                {['member', 'founder', 'backer'].map((r) => (
-                  <Pressable key={r} onPress={() => { tap(); setRole(r); }} style={{ paddingHorizontal: 14, paddingVertical: 8, borderRadius: 16, backgroundColor: role === r ? C.t : C.s2 }}>
-                    <Text style={{ color: role === r ? '#000' : C.t, fontSize: 13, fontWeight: '600', textTransform: 'capitalize' }}>{r}</Text>
-                  </Pressable>
-                ))}
-              </View>
-            </View>
             <ErrorText text={err} />
             <View style={{ marginTop: 24 }}><Button title={setup ? 'Continue' : 'Save'} onPress={save} loading={busy} disabled={!name.trim() || handle.length < 3} /></View>
           </Rise>
