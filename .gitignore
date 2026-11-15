@@ -11,6 +11,7 @@ mobile/ios
 mobile/android
 mobile/.expo
 *.apk
+vouch (X-styled)/
 
 # Dependencies
 node_modules
