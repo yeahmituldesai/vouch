@@ -11,7 +11,7 @@ const WEB = process.env.EXPO_PUBLIC_WEB_URL ?? 'https://vouch.example.com';
 
 export function Settings() {
   const nav = useNav();
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
   function confirmDelete() {
     Alert.alert('Delete your account?', 'This permanently removes your profile, vouches and feedback. It cannot be undone.', [
       { text: 'Cancel', style: 'cancel' },
@@ -32,6 +32,15 @@ export function Settings() {
       <ScrollView contentContainerStyle={{ padding: 18 }}>
         <Text style={{ color: C.dim, fontSize: 12, fontWeight: '700', textTransform: 'uppercase', marginTop: 8, marginBottom: 4 }}>Account</Text>
         <Row label="Edit profile" onPress={() => nav.navigate('EditProfile')} />
+        <Pressable onPress={() => nav.navigate('EditProfile')} style={{ paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: C.ln, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <Text style={{ color: C.t, fontSize: 15 }}>Role</Text>
+            <View style={{ paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10, backgroundColor: user?.role === 'founder' ? '#ff3b30' : C.s2 }}>
+              <Text style={{ color: user?.role === 'founder' ? '#fff' : C.t, fontSize: 11, fontWeight: '800', textTransform: 'uppercase' }}>{user?.role || 'member'}</Text>
+            </View>
+          </View>
+          <Text style={{ color: C.dim, fontSize: 16 }}>›</Text>
+        </Pressable>
         <Row label="Notifications" onPress={() => Alert.alert('Notifications', 'Notification preferences coming soon.')} />
         <Row label="Privacy and safety" onPress={() => Linking.openURL(`${WEB}/privacy`)} />
         <Text style={{ color: C.dim, fontSize: 12, fontWeight: '700', textTransform: 'uppercase', marginTop: 18, marginBottom: 4 }}>Support</Text>

@@ -135,11 +135,9 @@ export function Profile() {
 
         <View style={{ paddingHorizontal: 16, marginTop: 10 }}>
           <Text style={{ color: C.t, fontSize: 22, fontWeight: '800' }}>{user?.name || 'Your name'}</Text>
-          {user?.role && user.role !== 'member' ? (
-            <View style={{ marginTop: 3, marginRight: 8, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10, backgroundColor: C.s2 }}>
-              <Text style={{ color: C.dim, fontSize: 11, fontWeight: '700', textTransform: 'uppercase' }}>{user.role}</Text>
-            </View>
-          ) : null}
+          <View style={{ marginTop: 3, marginRight: 8, paddingHorizontal: 10, paddingVertical: 3, borderRadius: 14, backgroundColor: user?.role === 'founder' ? '#ff3b30' : C.s2 }}>
+            <Text style={{ color: user?.role === 'founder' ? '#fff' : C.t, fontSize: 11, fontWeight: '800', textTransform: 'uppercase' }}>{user?.role || 'member'}</Text>
+          </View>
           <Text style={{ color: C.dim, fontSize: 14, marginTop: 3 }}>@{user?.handle}</Text>
           {user?.bio ? <Text style={{ color: '#d1d1d6', fontSize: 14.5, lineHeight: 21, marginTop: 8 }}>{user.bio}</Text> : null}
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginTop: 8 }}>
