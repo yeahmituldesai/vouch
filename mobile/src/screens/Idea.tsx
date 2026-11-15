@@ -102,7 +102,7 @@ export function IdeaScreen() {
               <Text style={{ color: C.t, fontSize: 26, fontWeight: '800', letterSpacing: -1 }}>{idea.demand.score}</Text>
             </Press>
             <Pressable onPress={() => nav.navigate('UserProfile', { id: idea.owner.id })} style={{ flexDirection: 'row', alignItems: 'center', marginTop: 20, paddingTop: 16, borderTopWidth: 1, borderTopColor: C.ln }}>
-              <Avatar name={idea.owner.name || idea.owner.handle} />
+              <Avatar name={idea.owner.name || idea.owner.handle} url={idea.owner.avatarUrl} />
               <View style={{ flex: 1, marginLeft: 10 }}><Text style={{ color: C.t, fontSize: 14, fontWeight: '600' }}>{idea.owner.name || '@' + idea.owner.handle}</Text><Text style={T.sm}>Founder</Text></View>
               {!mine ? <Pill label={idea.viewer.followingOwner ? 'Following' : 'Follow'} on={idea.viewer.followingOwner} onPress={follow} /> : null}
             </Pressable>

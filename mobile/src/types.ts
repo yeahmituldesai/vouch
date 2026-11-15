@@ -1,7 +1,7 @@
 export type Idea = {
   id: string; imageUrl: string | null; name: string; category: 'Snacks' | 'Skincare' | 'Clothing' | 'Apps'; description: string;
   pricePaise: number | null; goal: number; status: 'live' | 'funded' | 'failed' | 'removed'; deadline: string; daysLeft: number; createdAt: string;
-  owner: { id: string; name: string; handle: string };
+  owner: { id: string; name: string; handle: string; avatarUrl: string | null };
   stats: { vouches: number; preorders: number; comments: number; buyers: number };
   percent: number;
   demand: { score: number; verdict: 'strong' | 'growing' | 'early'; interest: number; pay: number; conv: number };

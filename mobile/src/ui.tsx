@@ -1,6 +1,6 @@
 import * as Haptics from 'expo-haptics';
 import React, { useEffect, useRef, useState } from 'react';
-import { Animated, Easing, Pressable, StyleProp, Text, TextInput, TextInputProps, View, ViewStyle } from 'react-native';
+import { Animated, Easing, Image, Pressable, StyleProp, Text, TextInput, TextInputProps, View, ViewStyle } from 'react-native';
 import { Icon, IconName } from './Icon';
 import { C, T } from './theme';
 import { fmt, initials } from './format';
@@ -50,9 +50,15 @@ export function Pill({ label, icon, on, onPress, a11y }: { label: string; icon?:
   return onPress ? <Press onPress={onPress} label={a11y ?? label}>{body}</Press> : body;
 }
 
-export function Avatar({ name, size = 34, square }: { name: string; size?: number; square?: boolean }) {
+export function Avatar({ name, url, size = 34, square }: { name: string; url?: string | null; size?: number; square?: boolean }) {
+  const borderRadius = square ? size * 0.3 : size / 2;
+  if (url) {
+    return (
+      <Image source={{ uri: url }} style={{ width: size, height: size, borderRadius, resizeMode: 'cover' }} />
+    );
+  }
   return (
-    <View style={{ width: size, height: size, borderRadius: square ? size * 0.3 : size / 2, backgroundColor: C.s3, alignItems: 'center', justifyContent: 'center' }}>
+    <View style={{ width: size, height: size, borderRadius, backgroundColor: C.s3, alignItems: 'center', justifyContent: 'center' }}>
       <Text style={{ color: C.t, fontSize: size * 0.34, fontWeight: '700' }}>{initials(name)}</Text>
     </View>
   );

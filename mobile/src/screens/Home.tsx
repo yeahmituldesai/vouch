@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Alert, Animated, FlatList, Pressable, RefreshControl, Text, View } from 'react-native';
+import { Alert, Animated, FlatList, Pressable, RefreshControl, Share, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { api, ApiError } from '../api';
@@ -13,6 +13,8 @@ import { Avatar, Empty, Pill, Rise, success, tap } from '../ui';
 import { VouchLogo } from '../VouchLogo';
 import type { Idea } from '../types';
 
+const WEB = process.env.EXPO_PUBLIC_WEB_URL ?? 'https://vouch.example.com';
+
 export async function vouchApi(id: string) {
   return api<{ vouched: boolean; count: number }>(`/ideas/${id}/vouch`, { method: 'POST' });
 }
@@ -24,17 +26,33 @@ export function Post({ idea, i, onVouch }: { idea: Idea; i: number; onVouch: (id
   return (
     <Rise i={i}>
       <Pressable onPress={() => nav.navigate('Idea', { id: idea.id })} accessibilityRole="button" accessibilityLabel={`${idea.name} by ${idea.owner.name}`}
-        style={{ flexDirection: 'row', paddingVertical: 14, paddingHorizontal: 18, borderBottomWidth: 1, borderBottomColor: C.ln }}>
-        <Avatar name={idea.owner.name || idea.owner.handle} />
+        style={{ paddingVertical: 13, paddingHorizontal: 18, borderBottomWidth: 1, borderBottomColor: C.ln }}>
+        <Avatar name={idea.owner.name || idea.owner.handle} url={idea.owner.avatarUrl} />
         <View style={{ flex: 1, marginLeft: 10 }}>
-          <Text style={{ color: C.t, fontSize: 14, fontWeight: '600' }}>{idea.owner.name || '@' + idea.owner.handle}<Text style={{ color: C.g, fontWeight: '400' }}> · {ago(idea.createdAt)}</Text></Text>
-          <Text style={{ color: C.t, fontSize: 15, fontWeight: '700', marginTop: 2 }}>{idea.name}</Text>
+          <Text style={{ color: C.t, fontSize: 14, fontWeight: '600' }}>{idea.owner.name || '@' + idea.owner.handle}<Text style={{ color: C.g, fontWeight: '400', marginLeft: 4 }}> · {ago(idea.createdAt)}</Text></Text>
+          <Text style={{ color: C.t, fontSize: 15, fontWeight: '700', marginTop: 3 }}>{idea.name}</Text>
           <Text numberOfLines={2} style={{ color: '#d1d1d6', fontSize: 14, lineHeight: 20, marginTop: 2 }}>{idea.description}</Text>
-          <Art category={idea.category} height={170} radius={18} style={{ marginTop: 10 }} />
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10 }}>
-            <View style={{ marginRight: 7 }}><Pill icon="vouch" label={fmt(idea.stats.vouches)} on={idea.viewer.vouched} onPress={() => onVouch(idea.id)} a11y={idea.viewer.vouched ? 'Remove vouch' : 'Vouch'} /></View>
-            <View style={{ marginRight: 7 }}><Pill icon="chat" label={String(idea.stats.comments)} onPress={() => nav.navigate('Comments', { id: idea.id, name: idea.name })} a11y="Feedback" /></View>
-            <Pill icon={pays ? 'bag' : 'users'} label={`${idea.stats.preorders}/${idea.goal}`} />
+          <Art category={idea.category} height={150} radius={18} style={{ marginTop: 10 }} />
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 11 }}>
+            <Pressable onPress={() => nav.navigate('Comments', { id: idea.id, name: idea.name })} accessibilityLabel="Reply" style={{ marginRight: 16 }}>
+              <Icon name="chat" size={20} color={C.g} w={2} />
+              <Text style={{ color: C.g, fontSize: 13, marginTop: 2 }}>{fmt(idea.stats.comments)}</Text>
+            </Pressable>
+            <Pressable onPress={() => { tap(); }} accessibilityLabel="Repost" style={{ marginRight: 16 }}>
+              <Icon name="x" size={20} color={C.g} w={2} />
+              <Text style={{ color: C.g, fontSize: 13, marginTop: 2 }}>{fmt(idea.stats.vouches)}</Text>
+            </Pressable>
+            <Pressable onPress={() => onVouch(idea.id)} accessibilityLabel={idea.viewer.vouched ? 'Liked' : 'Like'} style={{ marginRight: 16 }}>
+              <Icon name="vouch" size={20} color={idea.viewer.vouched ? '#ff3b30' : C.g} w={2} />
+              <Text style={{ color: idea.viewer.vouched ? '#ff3b30' : C.g, fontSize: 13, marginTop: 2 }}>{fmt(idea.stats.vouches)}</Text>
+            </Pressable>
+            <Pressable onPress={() => Share.share({ message: `Would you buy ${idea.name}? Vouch for it on Vouch.\n${WEB}/i/${idea.id}` }) } accessibilityLabel="Share" style={{ marginRight: 16 }}>
+              <Icon name="share" size={20} color={C.g} w={2} />
+            </Pressable>
+            <View style={{ flex: 1 }} />
+            {pays ? (
+              <Text style={{ color: C.t, fontSize: 13, fontWeight: '600' }}>{idea.stats.preorders}/{idea.goal}</Text>
+            ) : null}
           </View>
         </View>
       </Pressable>

@@ -31,6 +31,7 @@ import type { RootParams } from './types';
 const Stack = createNativeStackNavigator<RootParams>();
 const Tab = createBottomTabNavigator();
 const ICONS: Record<string, IconName> = { Home: 'home', Explore: 'search', Alerts: 'bell', Profile: 'user' };
+const LABELS: Record<string, string> = { Home: 'Home', Explore: 'Explore', Alerts: 'Notifications', Profile: 'Profile' };
 
 function TabBar({ state, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();

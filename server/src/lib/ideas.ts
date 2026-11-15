@@ -25,7 +25,7 @@ export function demand(s: { vouches: number; preorders: number; goal: number; bu
 // $1 is always the viewer id (or null).
 export const IDEA_BASE = `
 SELECT i.id, i.name, i.category, i.description, i.price_paise, i.goal, i.status, i.deadline, i.created_at, i.image_url,
-  u.id AS owner_id, u.name AS owner_name, u.handle AS owner_handle,
+  u.id AS owner_id, u.name AS owner_name, u.handle AS owner_handle, u.avatar_url AS owner_avatar_url,
   (SELECT count(*)::int FROM vouches v WHERE v.idea_id = i.id) AS vouches,
   (SELECT count(*)::int FROM comments c WHERE c.idea_id = i.id) AS comments,
   ${PREORDERS} AS preorders,
@@ -50,7 +50,7 @@ export function mapIdea(r: any) {
     deadline: r.deadline,
     daysLeft,
     createdAt: r.created_at,
-    owner: { id: r.owner_id, name: r.owner_name, handle: r.owner_handle },
+    owner: { id: r.owner_id, name: r.owner_name, handle: r.owner_handle, avatarUrl: r.owner_avatar_url ?? null },
     stats: { vouches: r.vouches, preorders: r.preorders, comments: r.comments, buyers: r.buyers },
     percent: Math.min(100, Math.round((r.preorders / r.goal) * 100)),
     demand: d,
