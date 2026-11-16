@@ -26,6 +26,7 @@ Founder/CEO/Boss: You
 - Mobile CI now exports Android only.
 - Android release APK built locally and attached to GitHub Release `v0.0.10`.
 - README and launch checklist rewritten to match the Android-only beta.
+- Production API restored on 2026-11-16: stale Supabase password reset, Render `DATABASE_URL` rewritten without a stray leading tab, `SENTRY_DSN` added, redeployed `main`. `/health` returns 200 and `/api/v1/app-version` serves 0.0.10.
 
 ### Quality gates
 - Server typecheck: clean.
@@ -33,8 +34,6 @@ Founder/CEO/Boss: You
 - Server tests: 21 payments-mode + 4 beta-mode, run in CI against Postgres 16.
 
 ### Open items (external)
-- Production API returns HTTP 503; Render service must be redeployed with a working `DATABASE_URL`.
-- `SENTRY_DSN` is configured locally and verified; it still has to be added to Render and redeployed.
 - Image storage (S3/R2) not configured, so uploads stay disabled.
 - Beta APKs use the debug keystore; a public launch needs a private keystore and a fresh install.
 

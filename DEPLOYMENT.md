@@ -13,6 +13,11 @@ Migrations run automatically on server start, so you do not need to run them by 
 
 **Common failure:** `password authentication failed for user "postgres"` means the password in `DATABASE_URL` is stale or the host is the direct database host instead of the pooler. Rotate the database password in Supabase, re-copy the Session pooler URI, and update Render.
 
+Two traps that caused the 2026-11-16 outage:
+
+- **Stale password.** Supabase only shows the current password in the dashboard; a saved URI silently keeps working until the password is reset. Verify before touching Render: connect with `psql` or a small `pg` script using the exact URI. Test the pooler and the direct host separately. A wrong project ref returns `tenant/user ... not found`; a wrong password returns `28P01`.
+- **Leading whitespace.** A copied `DATABASE_URL` pasted into Render with a leading tab or newline is not the same value as the clean URI. After saving, read the variable back and confirm the first character is `p`. Rewriting the value from a script avoids the problem entirely.
+
 ## 2. API server (Render, free web service)
 
 1. Push this repo to GitHub.
