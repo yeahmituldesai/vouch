@@ -5,7 +5,7 @@ import * as Sentry from '@sentry/react-native';
 import { AuthProvider } from './src/auth';
 import { ErrorBoundary } from './src/ErrorBoundary';
 import { Nav } from './src/Nav';
-import { useUpdateCheck } from './src/updateCheck';
+import { UpdateChecker } from './src/updateCheck';
 
 // Initialize Sentry for crash and error reporting.
 // Set SENTRY_DSN in your mobile .env to enable reporting.
@@ -17,11 +17,6 @@ if (dsn) {
     tracesSampleRate: 0.1,
     enableAutoSessionTracking: true,
   });
-}
-
-function UpdateChecker() {
-  useUpdateCheck();
-  return null;
 }
 
 export default function App() {

@@ -19,6 +19,7 @@ const P: Record<string, (c: string) => React.ReactNode> = {
   more: () => (<><Circle cx="6" cy="12" r="1" /><Circle cx="12" cy="12" r="1" /><Circle cx="18" cy="12" r="1" /></>),
   users: () => (<><Circle cx="9" cy="9" r="3.2" /><Path d="M3 20c0-3.3 2.7-5 6-5s6 1.7 6 5" /></>),
   up: () => <Path d="M12 19V5M6 11l6-6 6 6" />,
+  down: () => <Path d="M12 5v14M19 12l-7 7-7-7" />,
 };
 export type IconName = keyof typeof P;
 export function Icon({ name, size = 22, color = '#fff', w = 1.9 }: { name: IconName; size?: number; color?: string; w?: number }) {

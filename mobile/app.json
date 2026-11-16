@@ -22,7 +22,8 @@
     },
     "android": {
       "package": "com.vouchapp.vouch",
-      "versionCode": 17,
+      "versionCode": 18,
+      "permissions": ["REQUEST_INSTALL_PACKAGES"],
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
