@@ -34,7 +34,7 @@ Founder/CEO/Boss: You
 
 ### Open items (external)
 - Production API returns HTTP 503; Render service must be redeployed with a working `DATABASE_URL`.
-- `SENTRY_DSN` for the server project is still empty (mobile is configured and live).
+- `SENTRY_DSN` is configured locally and verified; it still has to be added to Render and redeployed.
 - Image storage (S3/R2) not configured, so uploads stay disabled.
 - Beta APKs use the debug keystore; a public launch needs a private keystore and a fresh install.
 
