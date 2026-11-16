@@ -2,7 +2,7 @@
 
 ## 📱 Beta download (Android)
 
-**Vouch beta v0.0.10** — free, Android only.
+**Vouch beta-v1** — free, Android only.
 
 1. On your Android phone, open **[download Vouch beta](https://github.com/yeahmituldesai/vouch/releases/latest)**.
 2. Allow installing from this source when Chrome asks.
@@ -30,7 +30,7 @@ mobile/   Expo (React Native) Android app
 | Dependency audit (production) | 0 vulnerabilities |
 | Production start-up guard (refuses mock payments, console SMS, open CORS) | works |
 | Mobile type check | clean |
-| Android release APK built and published | v0.0.10 |
+| Android release APK built and published | beta-v1 (versionCode 15) |
 
 Not verified, because it needs real accounts or a device: real payments (Razorpay), push delivery on every OEM, and image uploads (storage is not configured). Test these yourself in Part D.
 

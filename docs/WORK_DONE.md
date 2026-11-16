@@ -3,6 +3,13 @@
 Prepared by: Ledger (personal accountant agent)
 Founder/CEO/Boss: You
 
+## 2026-11-16 — beta-v1 relabel and rebuild
+
+- Version relabelled from `0.0.10` to `beta-v1`; Android versionCode bumped `14` → `15` so the in-app update prompt fires.
+- Changed in `mobile/app.json`, `mobile/package.json`, `mobile/android/app/build.gradle` and `server/src/lib/appVersion.ts`; Expo accepts the non-semver label.
+- GitHub release tag renamed `v0.0.10` → `beta-v1`; download URL is now `releases/download/beta-v1/vouch-beta.apk`.
+- Clean rebuild: 90,246,491 bytes, signature unchanged (`5e8f1606…`), mobile Sentry DSN and API URL verified inside the bundle, published asset hash matches the local build (`99DBAECE…`).
+
 ## 2026-11-16 — v0.0.10 audit and Android release
 
 ### Audit fixes shipped
