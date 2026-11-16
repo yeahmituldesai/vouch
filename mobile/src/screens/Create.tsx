@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import * as ImagePicker from 'expo-image-picker';
 import { api, ApiError } from '../api';
 import { useAuth } from '../auth';
 import { useNav } from '../navigation';
 import { C } from '../theme';
 import { Button, ErrorText, Field, Header, Rise, success, tap } from '../ui';
+import { IDEA_SPEC, pickImage } from '../imagePick';
 import type { Idea } from '../types';
 
 const CATS = ['Snacks', 'Skincare', 'Clothing', 'Apps'] as const;
@@ -26,11 +26,10 @@ export function CreateScreen() {
   const [busy, setBusy] = useState(false);
 
   async function pickPhoto() {
-    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!perm.granted) { setErr('Photo permission is required'); return; }
-    const r = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.7, base64: true });
-    if (r.canceled || !r.assets?.[0]?.base64) return;
-    setPhoto(`data:image/jpeg;base64,${r.assets[0].base64}`);
+    try {
+      const picked = await pickImage(IDEA_SPEC, [1, 1]);
+      if (picked) setPhoto(picked.dataUrl);
+    } catch (e) { setErr(e instanceof Error ? e.message : 'Could not read that photo'); }
   }
   const ok = name.trim().length >= 3 && (!pays || Number(price) >= 1) && Number(goal) >= 5 && desc.trim().length >= 10;
 

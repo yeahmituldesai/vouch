@@ -60,14 +60,14 @@ r.delete('/push-token', wrap(async (req, res) => {
 r.post('/avatar', wrap(async (req, res) => {
   if (!imagesEnabled()) throw new HttpError(501, 'IMAGES_DISABLED', 'Image uploads are not configured');
   const b = parse(z.object({ image: z.string().min(1) }), req.body);
-  const url = await uploadImage(b.image, `avatars/${req.user!.id}`);
+  const url = await uploadImage(b.image, `avatars/${req.user!.id}`, 'avatar');
   const u = (await q('UPDATE users SET avatar_url = $1 WHERE id = $2 RETURNING *', [url, req.user!.id])).rows[0];
   res.json({ user: publicUser(u) });
 }));
 r.post('/banner', wrap(async (req, res) => {
   if (!imagesEnabled()) throw new HttpError(501, 'IMAGES_DISABLED', 'Image uploads are not configured');
   const b = parse(z.object({ image: z.string().min(1) }), req.body);
-  const url = await uploadImage(b.image, `banners/${req.user!.id}`);
+  const url = await uploadImage(b.image, `banners/${req.user!.id}`, 'banner');
   const u = (await q('UPDATE users SET banner_url = $1 WHERE id = $2 RETURNING *', [url, req.user!.id])).rows[0];
   res.json({ user: publicUser(u) });
 }));

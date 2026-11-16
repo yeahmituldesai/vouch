@@ -15,7 +15,7 @@ import orderRoutes from './routes/orders';
 import socialRoutes from './routes/social';
 import webhookRoutes from './routes/webhooks';
 import adminRoutes from './routes/admin';
-import { imagesEnabled } from './lib/images';
+import { imagesEnabled, UPLOAD_BODY_LIMIT } from './lib/images';
 import { APP_VERSION } from './lib/appVersion';
 
 export function createApp() {
@@ -26,7 +26,12 @@ export function createApp() {
   app.use(cors({ origin: config.CORS_ORIGINS === '*' ? true : config.CORS_ORIGINS.split(',').map((s) => s.trim()) }));
   app.use(express.static(path.join(__dirname, '..', 'public'), { extensions: ['html'], maxAge: '1h' }));
   if (config.PAYMENTS_ENABLED === 'true') app.use('/webhooks', webhookRoutes);
-  app.use(express.json({ limit: '50kb' }));
+  // Image uploads need a larger JSON body; everything else stays at 50 KB.
+  const jsonSmall = express.json({ limit: '50kb' });
+  const jsonUpload = express.json({ limit: UPLOAD_BODY_LIMIT });
+  const uploadPaths = [/^\/api\/v1\/me\/avatar$/, /^\/api\/v1\/me\/banner$/, /^\/api\/v1\/ideas\/[^/]+\/image$/];
+  app.use((req, res, next) =>
+    (req.method === 'POST' && uploadPaths.some((re) => re.test(req.path)) ? jsonUpload : jsonSmall)(req, res, next));
   app.use(rateLimit({ windowMs: 60_000, limit: 300, standardHeaders: true, legacyHeaders: false, skip: () => config.NODE_ENV === 'test' }));
 
   app.get('/health', async (_req, res) => {

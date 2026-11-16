@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native';
-import * as ImagePicker from 'expo-image-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { api, ApiError } from '../api';
 import { useAuth } from '../auth';
 import { useNav } from '../navigation';
 import { C, T } from '../theme';
 import { Button, ErrorText, Field, Header, Rise } from '../ui';
+import { AVATAR_SPEC, BANNER_SPEC, mbLabel, pickImage } from '../imagePick';
 
 export function EditProfile({ setup }: { setup?: boolean }) {
   const nav = useNav();
-  const { user, refresh } = useAuth();
+  const { user, refresh, imagesEnabled } = useAuth();
   const [name, setName] = useState(user?.name ?? '');
   const [handle, setHandle] = useState(user?.handle ?? '');
   const [bio, setBio] = useState(user?.bio ?? '');
@@ -19,22 +19,22 @@ export function EditProfile({ setup }: { setup?: boolean }) {
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
   async function uploadAvatar() {
-    const r = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.8, base64: true });
-    if (r.canceled || !r.assets?.[0]?.base64) return;
+    setErr('');
     try {
-      const dataUrl = 'data:image/jpeg;base64,' + r.assets[0].base64;
-      await api('/me/avatar', { method: 'POST', body: { image: dataUrl } });
+      const picked = await pickImage(AVATAR_SPEC, [1, 1]);
+      if (!picked) return;
+      await api('/me/avatar', { method: 'POST', body: { image: picked.dataUrl } });
       await refresh();
-    } catch (e) { setErr(e instanceof ApiError ? e.message : 'Upload failed'); }
+    } catch (e) { setErr(e instanceof ApiError ? e.message : e instanceof Error ? e.message : 'Upload failed'); }
   }
   async function uploadBanner() {
-    const r = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.8, base64: true });
-    if (r.canceled || !r.assets?.[0]?.base64) return;
+    setErr('');
     try {
-      const dataUrl = 'data:image/jpeg;base64,' + r.assets[0].base64;
-      await api('/me/banner', { method: 'POST', body: { image: dataUrl } });
+      const picked = await pickImage(BANNER_SPEC, [3, 1]);
+      if (!picked) return;
+      await api('/me/banner', { method: 'POST', body: { image: picked.dataUrl } });
       await refresh();
-    } catch (e) { setErr(e instanceof ApiError ? e.message : 'Upload failed'); }
+    } catch (e) { setErr(e instanceof ApiError ? e.message : e instanceof Error ? e.message : 'Upload failed'); }
   }
   async function save() {
     setBusy(true); setErr('');
@@ -52,14 +52,25 @@ export function EditProfile({ setup }: { setup?: boolean }) {
         <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 22 }}>
           <Rise>
             {setup ? <><Text style={[T.h1, { fontSize: 32 }]}>Set up your profile</Text><Text style={[T.sm, { fontSize: 15, marginTop: 8, lineHeight: 22 }]}>This is how founders and voters see you.</Text></> : null}
-            <View style={{ flexDirection: 'row', gap: 8, marginTop: 14 }}>
-              <Pressable onPress={uploadAvatar} style={{ paddingHorizontal: 14, paddingVertical: 8, borderRadius: 16, backgroundColor: C.s2 }}>
-                <Text style={{ color: C.t, fontSize: 13, fontWeight: '600' }}>Change avatar</Text>
-              </Pressable>
-              <Pressable onPress={uploadBanner} style={{ paddingHorizontal: 14, paddingVertical: 8, borderRadius: 16, backgroundColor: C.s2 }}>
-                <Text style={{ color: C.t, fontSize: 13, fontWeight: '600' }}>Change banner</Text>
-              </Pressable>
-            </View>
+            {imagesEnabled ? (
+              <>
+                <View style={{ flexDirection: 'row', gap: 8, marginTop: 14 }}>
+                  <Pressable onPress={uploadAvatar} style={{ paddingHorizontal: 14, paddingVertical: 8, borderRadius: 16, backgroundColor: C.s2 }}>
+                    <Text style={{ color: C.t, fontSize: 13, fontWeight: '600' }}>Change avatar</Text>
+                  </Pressable>
+                  <Pressable onPress={uploadBanner} style={{ paddingHorizontal: 14, paddingVertical: 8, borderRadius: 16, backgroundColor: C.s2 }}>
+                    <Text style={{ color: C.t, fontSize: 13, fontWeight: '600' }}>Change banner</Text>
+                  </Pressable>
+                </View>
+                <Text style={{ color: C.dim, fontSize: 12, marginTop: 8, lineHeight: 17 }}>
+                  Avatar: square 400×400, up to {mbLabel(AVATAR_SPEC.maxBytes)}. Header: 1500×500, up to {mbLabel(BANNER_SPEC.maxBytes)}.
+                </Text>
+              </>
+            ) : (
+              <Text style={{ color: C.dim, fontSize: 13, marginTop: 14, lineHeight: 19 }}>
+                Profile photos are off until image storage is configured.
+              </Text>
+            )}
             <Field label="Name" value={name} onChangeText={setName} placeholder="Your name" maxLength={50} autoCapitalize="words" textContentType="name" />
             <Field label="Handle" value={handle} onChangeText={(t) => setHandle(t.toLowerCase().replace(/[^a-z0-9_]/g, ''))} placeholder="yourhandle" maxLength={20} autoCapitalize="none" autoCorrect={false} />
             <Field label="Bio" value={bio} onChangeText={setBio} placeholder="One line about you" maxLength={160} multiline />

@@ -3,6 +3,14 @@
 Prepared by: Ledger (personal accountant agent)
 Founder/CEO/Boss: You
 
+## 2026-11-16 — beta-v2: X-parity profile photos
+
+- Avatar/header rules now match X's published limits: avatar 400×400 px / max 2 MB, header 1500×500 px / max 5 MB, JPG/PNG/GIF/WebP with magic-byte validation so a renamed file cannot bypass the check.
+- Photos are cropped to the right aspect and resized on the device with `expo-image-manipulator` before upload; the app rejects anything over the cap with a clear message.
+- Upload routes (`/me/avatar`, `/me/banner`, `/ideas/:id/image`) accept a 7 MB JSON body; every other route stays at 50 KB. This fixes the previous ~38 KB effective cap caused by the global 50 KB parser.
+- Profile photo buttons are hidden while image storage is unconfigured instead of failing with a 501.
+- Version bumped to `beta-v2` / versionCode `16`.
+
 ## 2026-11-16 — beta-v1 relabel and rebuild
 
 - Version relabelled from `0.0.10` to `beta-v1`; Android versionCode bumped `14` → `15` so the in-app update prompt fires.

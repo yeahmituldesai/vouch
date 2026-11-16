@@ -35,6 +35,8 @@ Two traps that caused the 2026-11-16 outage:
    - `GOOGLE_CLIENT_ID` = your Google OAuth Web client ID (required for production sign-in)
    - `SENTRY_DSN` = your Sentry DSN (optional, free tier is enough)
    - `R2_ACCOUNT_ID`, `R2_ACCESS_KEY`, `R2_SECRET_KEY`, `R2_BUCKET`, `R2_PUBLIC_URL` = Cloudflare R2 (optional, free tier 10GB; leave empty to use category icons)
+
+Photo uploads match X/Twitter's limits once R2 is set: avatar 400×400 px and max 2 MB, header 1500×500 px and max 5 MB, idea photo max 5 MB, formats JPG/PNG/GIF/WebP. The app crops and compresses before upload, so a phone photo normally arrives as a 30–80 KB avatar. Only the three upload routes accept bodies over the 50 KB global JSON limit (7 MB cap); everything else stays at 50 KB.
 4. Deploy. Open `https://YOUR-API/health` → `{"ok":true}`.
 5. Review `server/public/*.html` before launch. They already use the real contact email and Google-only sign-in text.
 

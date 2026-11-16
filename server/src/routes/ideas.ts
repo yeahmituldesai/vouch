@@ -145,7 +145,7 @@ r.post('/:id/image', requireAuth, wrap(async (req, res) => {
   if (!i) throw new HttpError(404, 'NOT_FOUND', 'Idea not found');
   if (i.owner_id !== req.user!.id) throw new HttpError(403, 'FORBIDDEN', 'Only the founder can update this image');
   const b = parse(z.object({ image: z.string().min(1) }), req.body);
-  const url = await uploadImage(b.image, `ideas/${id}`);
+  const url = await uploadImage(b.image, `ideas/${id}`, 'idea');
   await q('UPDATE ideas SET image_url = $1 WHERE id = $2', [url, id]);
   res.json({ imageUrl: url });
 }));
