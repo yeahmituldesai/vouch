@@ -38,6 +38,13 @@ function sniffMime(buf: Buffer): string | null {
 }
 
 export function imagesEnabled(): boolean {
+  // Storage is always available: Cloudflare R2 when configured, otherwise the
+  // (already compressed) image is stored in the database as a data URL so the
+  // beta works without a third-party account.
+  return true;
+}
+
+export function r2Enabled(): boolean {
   return !!(config.R2_ACCOUNT_ID && config.R2_ACCESS_KEY && config.R2_SECRET_KEY && config.R2_BUCKET && config.R2_PUBLIC_URL);
 }
 
@@ -66,7 +73,12 @@ export async function uploadImage(dataUrl: string, prefix: string, kind: ImageKi
   if (buf.length > limit.maxBytes) {
     throw new HttpError(413, 'IMAGE_TOO_LARGE', `Image must be under ${Math.round(limit.maxBytes / (1024 * 1024))} MB`);
   }
-  const key = `${prefix}/${crypto.randomBytes(12).toString('hex')}.${MIME_EXT[mime]}`;
-  await getClient().send(new PutObjectCommand({ Bucket: config.R2_BUCKET, Key: key, Body: buf, ContentType: mime }));
-  return `${config.R2_PUBLIC_URL!.replace(/\/$/, '')}/${key}`;
+  if (r2Enabled()) {
+    const key = `${prefix}/${crypto.randomBytes(12).toString('hex')}.${MIME_EXT[mime]}`;
+    await getClient().send(new PutObjectCommand({ Bucket: config.R2_BUCKET, Key: key, Body: buf, ContentType: mime }));
+    return `${config.R2_PUBLIC_URL!.replace(/\/$/, '')}/${key}`;
+  }
+  // No R2 configured: store the (already compressed) image inline so the beta
+  // works without a third-party account. The client crops and compresses first.
+  return `data:${mime};base64,${m[2].replace(/\s+/g, '')}`;
 }
