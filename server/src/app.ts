@@ -111,7 +111,7 @@ export function createApp() {
   // Public landing page for shared profile links (the app shares /u/:handle URLs).
   app.get('/u/:handle', async (req, res, next) => {
     try {
-      if (!/^[a-z0-9_]{3,20}$/i.test(req.params.handle)) return next();
+      if (!/^[a-z0-9_]{4,15}$/i.test(req.params.handle)) return next();
       const { rows } = await q(
         `SELECT u.id, u.name, u.handle, u.bio, u.avatar_url, u.role, u.created_at,
                 (SELECT count(*)::int FROM ideas i WHERE i.owner_id = u.id AND i.status <> 'removed') AS ideas,

@@ -5,7 +5,7 @@ import { api, ApiError } from '../api';
 import { useAuth } from '../auth';
 import { useNav } from '../navigation';
 import { C, T } from '../theme';
-import { Button, ErrorText, Field, Header, Rise } from '../ui';
+import { Avatar, Button, ErrorText, Field, Header, Rise } from '../ui';
 import { AVATAR_SPEC, BANNER_SPEC, mbLabel, pickImage } from '../imagePick';
 
 export function EditProfile({ setup }: { setup?: boolean }) {
@@ -54,6 +54,9 @@ export function EditProfile({ setup }: { setup?: boolean }) {
             {setup ? <><Text style={[T.h1, { fontSize: 32 }]}>Set up your profile</Text><Text style={[T.sm, { fontSize: 15, marginTop: 8, lineHeight: 22 }]}>This is how founders and voters see you.</Text></> : null}
             {imagesEnabled ? (
               <>
+                <View style={{ alignItems: 'center', marginTop: 14 }}>
+                  <Avatar name={name || user?.name || 'Me'} url={user?.avatarUrl} size={78} />
+                </View>
                 <View style={{ flexDirection: 'row', gap: 8, marginTop: 14 }}>
                   <Pressable onPress={uploadAvatar} style={{ paddingHorizontal: 14, paddingVertical: 8, borderRadius: 16, backgroundColor: C.s2 }}>
                     <Text style={{ color: C.t, fontSize: 13, fontWeight: '600' }}>Change avatar</Text>
@@ -72,12 +75,13 @@ export function EditProfile({ setup }: { setup?: boolean }) {
               </Text>
             )}
             <Field label="Name" value={name} onChangeText={setName} placeholder="Your name" maxLength={50} autoCapitalize="words" textContentType="name" />
-            <Field label="Handle" value={handle} onChangeText={(t) => setHandle(t.toLowerCase().replace(/[^a-z0-9_]/g, ''))} placeholder="yourhandle" maxLength={20} autoCapitalize="none" autoCorrect={false} />
+            <Field label="Handle" value={handle} onChangeText={(t) => setHandle(t.toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 15))} placeholder="yourhandle" maxLength={15} autoCapitalize="none" autoCorrect={false} />
+            <Text style={{ color: C.dim, fontSize: 12, marginTop: -6, marginBottom: 10 }}>4–15 characters: letters, numbers, underscores.</Text>
             <Field label="Bio" value={bio} onChangeText={setBio} placeholder="One line about you" maxLength={160} multiline />
             <Field label="Location" value={location} onChangeText={setLocation} placeholder="City, Country" maxLength={60} />
             <Field label="Website" value={website} onChangeText={setWebsite} placeholder="https://…" maxLength={120} autoCapitalize="none" autoCorrect={false} />
             <ErrorText text={err} />
-            <View style={{ marginTop: 24 }}><Button title={setup ? 'Continue' : 'Save'} onPress={save} loading={busy} disabled={!name.trim() || handle.length < 3} /></View>
+            <View style={{ marginTop: 24 }}><Button title={setup ? 'Continue' : 'Save'} onPress={save} loading={busy} disabled={!name.trim() || handle.length < 4} /></View>
           </Rise>
         </ScrollView>
       </KeyboardAvoidingView>

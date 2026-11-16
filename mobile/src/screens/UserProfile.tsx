@@ -115,7 +115,7 @@ export function UserProfile() {
         {/* Header action row */}
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, marginTop: -24 }}>
           <View style={{ borderWidth: 3, borderColor: C.bg, borderRadius: 40, overflow: 'hidden' }}>
-            {user.avatarUrl ? <Image source={{ uri: user.avatarUrl }} style={{ width: 78, height: 78, borderRadius: 39, resizeMode: 'cover' }} /> : <Avatar name={user.name} size={78} />}
+            <Avatar name={user.name} url={user.avatarUrl} size={78} />
           </View>
           {!isSelf ? (
             <View style={{ flexDirection: 'row' }}>

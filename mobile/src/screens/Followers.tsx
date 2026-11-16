@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { Image, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useRoute } from '@react-navigation/native';
 import { api } from '../api';
@@ -26,7 +26,7 @@ export function Followers() {
         {users.map((u) => (
           <Pressable key={u.id} onPress={() => nav.navigate('UserProfile', { id: u.id })} style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: C.ln }}>
             <View style={{ borderWidth: 1, borderColor: C.ln, borderRadius: 24, overflow: 'hidden', marginRight: 12 }}>
-              {u.avatarUrl ? <Image source={{ uri: u.avatarUrl }} style={{ width: 44, height: 44, borderRadius: 22 }} /> : <Avatar name={u.name} size={44} />}
+              <Avatar name={u.name} url={u.avatarUrl} size={44} />
             </View>
             <View style={{ flex: 1 }}><Text style={{ color: C.t, fontSize: 15, fontWeight: '600' }}>{u.name}</Text><Text style={T.sm}>@{u.handle}</Text></View>
           </Pressable>

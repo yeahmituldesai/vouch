@@ -116,7 +116,7 @@ export function Profile() {
         {/* Header action row: avatar + Edit profile + share + more */}
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, marginTop: -24 }}>
           <View style={{ borderWidth: 3, borderColor: C.bg, borderRadius: 40, overflow: 'hidden' }}>
-            {user?.avatarUrl ? <Image source={{ uri: user.avatarUrl }} style={{ width: 78, height: 78, borderRadius: 39, resizeMode: 'cover' }} /> : <Avatar name={user?.name || 'Me'} size={78} />}
+            <Avatar name={user?.name || 'Me'} url={user?.avatarUrl} size={78} />
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <Pressable onPress={shareProfile} accessibilityLabel="Share profile" style={{ width: 38, height: 38, borderRadius: 19, borderWidth: 1, borderColor: C.ln, alignItems: 'center', justifyContent: 'center', marginRight: 8 }}>

@@ -26,7 +26,7 @@ r.get('/', wrap(async (req, res) => {
 r.patch('/', wrap(async (req, res) => {
   const b = parse(z.object({
     name: z.string().trim().min(1).max(50).optional(),
-    handle: z.string().regex(/^[a-z0-9_]{3,20}$/, 'Use 3 to 20 lowercase letters, numbers or underscores').optional(),
+    handle: z.string().trim().transform((v) => v.toLowerCase()).pipe(z.string().regex(/^[a-z0-9_]{4,15}$/, 'Handle must be 4 to 15 characters: letters, numbers or underscores')).optional(),
     bio: z.string().trim().max(160).optional(),
     location: z.string().trim().max(60).optional(),
     website: z.string().trim().max(120).optional(),
@@ -113,7 +113,7 @@ r.delete('/', wrap(async (req, res) => {
     await c.query('DELETE FROM notifications WHERE user_id = $1', [id]);
     await c.query('DELETE FROM blocks WHERE blocker_id = $1 OR blocked_id = $1', [id]);
     await c.query('DELETE FROM reports WHERE reporter_id = $1', [id]);
-    await c.query(`UPDATE users SET phone = 'deleted:' || id::text, name = 'Deleted user', handle = 'deleted_' || substr(id::text, 1, 8), bio = '', google_sub = NULL, email = NULL, push_token = NULL, is_banned = true, deleted_at = now() WHERE id = $1`, [id]);
+    await c.query(`UPDATE users SET phone = 'deleted:' || id::text, name = 'Deleted user', handle = 'deleted_' || substr(replace(id::text, '-', ''), 1, 7), bio = '', google_sub = NULL, email = NULL, push_token = NULL, is_banned = true, deleted_at = now() WHERE id = $1`, [id]);
   });
   res.json({ ok: true });
 }));

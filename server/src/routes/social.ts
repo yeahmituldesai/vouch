@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { z } from 'zod';
 import { pool, q } from '../db';
 import { HttpError, parse, uuid, wrap } from '../lib/http';
 import { requireAuth } from '../lib/auth';
@@ -26,12 +27,31 @@ async function profileFor(id: string, viewerId: string) {
 // Shared profile links use /u/:handle, so the app must resolve a handle too.
 r.get('/users/by-handle/:handle', requireAuth, wrap(async (req, res) => {
   const handle = String(req.params.handle ?? '');
-  if (!/^[a-z0-9_]{3,20}$/i.test(handle)) throw new HttpError(404, 'NOT_FOUND', 'User not found');
+  if (!/^[a-z0-9_]{4,15}$/i.test(handle)) throw new HttpError(404, 'NOT_FOUND', 'User not found');
   const row = (await q('SELECT id FROM users WHERE lower(handle) = lower($1)', [handle])).rows[0];
   if (!row) throw new HttpError(404, 'NOT_FOUND', 'User not found');
   res.json(await profileFor(row.id, req.user!.id));
 }));
 
+// Search people by handle or name (Instagram/X-style). Returns avatars and follow state.
+r.get('/users/search', requireAuth, wrap(async (req, res) => {
+  const f = parse(z.object({ q: z.string().trim().min(1).max(30) }), req.query);
+  // Allow searching with a leading "@" (X/Instagram style) and ignore case.
+  const raw = f.q.replace(/^@+/, '').trim() || f.q.trim();
+  const term = '%' + raw.replace(/[%_\\]/g, '\\$&') + '%';
+  const { rows } = await q(
+    `SELECT u.id, u.name, u.handle, u.bio, u.avatar_url,
+            (SELECT count(*)::int FROM follows WHERE followee_id = u.id) AS followers,
+            EXISTS (SELECT 1 FROM follows WHERE follower_id = $2 AND followee_id = u.id) AS following
+       FROM users u
+      WHERE u.is_banned = false
+        AND u.deleted_at IS NULL
+        AND (u.handle ILIKE $1 OR u.name ILIKE $1)
+      ORDER BY (lower(u.handle) = lower($3)) DESC, (u.handle ILIKE $1) DESC, followers DESC
+      LIMIT 20`,
+    [term, req.user!.id, raw]);
+  res.json({ users: rows.map((u: any) => ({ ...publicUser(u), followers: u.followers, following: u.following })) });
+}));
 r.get('/users/:id', requireAuth, wrap(async (req, res) => {
   const id = parse(uuid, req.params.id);
   res.json(await profileFor(id, req.user!.id));

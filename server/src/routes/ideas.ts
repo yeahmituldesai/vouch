@@ -24,7 +24,11 @@ r.get('/', optionalAuth, wrap(async (req, res) => {
   const params: unknown[] = [];
   const add = (v: unknown) => (params.push(v), `$${params.length + 1}`);
   if (f.category) where.push(`i.category = ${add(f.category)}`);
-  if (f.q) where.push(`(i.name ILIKE ${add('%' + f.q.replace(/[\\%_]/g, '\\$&') + '%')} OR u.name ILIKE $${params.length + 1} OR u.handle ILIKE $${params.length + 1})`);
+  if (f.q) {
+    const qq = f.q.replace(/^@+/, '').trim();
+    const pat = '%' + qq.replace(/[\\%_]/g, '\\$&') + '%';
+    where.push(`(i.name ILIKE ${add(pat)} OR u.name ILIKE $${params.length + 1} OR u.handle ILIKE $${params.length + 1})`);
+  }
   if (f.following) {
     if (!req.user) throw new HttpError(401, 'UNAUTHORIZED', 'Sign in to see people you follow');
     where.push(`EXISTS (SELECT 1 FROM follows fo WHERE fo.follower_id = $1::uuid AND fo.followee_id = i.owner_id)`);

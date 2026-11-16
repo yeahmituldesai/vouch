@@ -78,7 +78,7 @@ r.post('/otp/verify', limiter, wrap(async (req, res) => {
       user = (await q('INSERT INTO users (phone, handle) VALUES ($1, $2) RETURNING *', [phone, 'user' + crypto.randomBytes(3).toString('hex')])).rows[0];
       isNew = true;
     } catch (e: any) {
-      if (e.code !== '23505') throw e;
+      if (e.code !== '23505' && e.code !== '23514') throw e;
       user = (await q('SELECT * FROM users WHERE phone = $1', [phone])).rows[0];
     }
   }
@@ -116,7 +116,7 @@ r.post('/google', googleLimiter, wrap(async (req, res) => {
         )).rows[0];
         isNew = true;
       } catch (e: any) {
-        if (e.code !== '23505') throw e;
+        if (e.code !== '23505' && e.code !== '23514') throw e;
         user = (await q('SELECT * FROM users WHERE google_sub = $1', [googleSub])).rows[0];
       }
     }

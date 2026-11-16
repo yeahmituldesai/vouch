@@ -101,7 +101,7 @@ export function Home() {
       <View style={{ paddingHorizontal: 18, paddingTop: 6, paddingBottom: 8 }}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
           <VouchLogo height={26} />
-          <Avatar name={user?.name || 'Me'} />
+          <Avatar name={user?.name || 'Me'} url={user?.avatarUrl} />
         </View>
         <View style={{ flexDirection: 'row', marginTop: 10 }}>
           {(['for', 'fol'] as const).map((k) => (
