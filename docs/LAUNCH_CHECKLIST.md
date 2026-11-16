@@ -17,8 +17,8 @@ Code side is launch-ready for the Android beta. These steps need accounts, peopl
 - [x] Handle deep links (`vouch://u/:handle` and `https://…/u/:handle`) resolve through `GET /users/by-handle/:handle`.
 - [x] Comment avatars served and rendered.
 - [x] Notifications row opens system settings; no "coming soon" dialogs left.
-- [x] Sentry SDK installed in the app (`@sentry/react-native` plugin). Crash reporting stays off until a DSN is provided.
-- [ ] Set `SENTRY_DSN` on the server and `EXPO_PUBLIC_SENTRY_DSN` in `mobile/.env`, rebuild, and send a test crash.
+- [x] Sentry SDK installed in the app (`@sentry/react-native` plugin). Mobile DSN configured, APK rebuilt, and a test event accepted by Sentry.
+- [ ] Add the server project DSN (`SENTRY_DSN`) to `server/.env` and Render, then redeploy the API.
 - [x] Android APK v0.0.10 built and attached to GitHub Releases.
 - [ ] Install v0.0.10 on a real Android phone and smoke-test: Google sign-in, feed, create idea, vouch, comment, follow, edit profile, delete account.
 - [ ] Keep the release keystore safe. Beta APKs currently use the debug keystore; a Play Store launch needs a private keystore and a fresh install.

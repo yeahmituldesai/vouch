@@ -17,7 +17,7 @@ Founder/CEO/Boss: You
 - Onboarding: demo charts show real-looking progress instead of 0% / dash.
 - Image pickers updated to the current `mediaTypes: ['images']` API.
 - Legal pages: real contact `thedesaimitul@gmail.com`, Google-only sign-in text, beta/no-payments wording. No `[[PLACEHOLDER]]` or fake emails remain.
-- Sentry SDK installed in the app (`@sentry/react-native` config plugin). Reporting stays off until a DSN is provided.
+- Sentry SDK installed in the app (`@sentry/react-native` config plugin), with the mobile DSN baked into v0.0.10 and verified by a test event.
 
 ### Release and CI
 - Version bumped to `0.0.10` / versionCode `14` in `app.json`, `package.json`, `android/app/build.gradle` and `server/src/lib/appVersion.ts`.
@@ -34,7 +34,7 @@ Founder/CEO/Boss: You
 
 ### Open items (external)
 - Production API returns HTTP 503; Render service must be redeployed with a working `DATABASE_URL`.
-- `SENTRY_DSN` / `EXPO_PUBLIC_SENTRY_DSN` still empty.
+- `SENTRY_DSN` for the server project is still empty (mobile is configured and live).
 - Image storage (S3/R2) not configured, so uploads stay disabled.
 - Beta APKs use the debug keystore; a public launch needs a private keystore and a fresh install.
 
