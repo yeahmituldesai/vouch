@@ -3,11 +3,10 @@ import { Alert, Linking, Pressable, ScrollView, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../auth';
 import { api, ApiError } from '../api';
+import { WEB } from '../config';
 import { useNav } from '../navigation';
-import { C, T } from '../theme';
+import { C } from '../theme';
 import { Button } from '../ui';
-
-const WEB = process.env.EXPO_PUBLIC_WEB_URL ?? 'https://vouch.example.com';
 
 export function Settings() {
   const nav = useNav();
@@ -33,10 +32,11 @@ export function Settings() {
         <Text style={{ color: C.dim, fontSize: 12, fontWeight: '700', textTransform: 'uppercase', marginTop: 8, marginBottom: 4 }}>Account</Text>
         <Row label="Edit profile" onPress={() => nav.navigate('EditProfile')} />
 
-        <Row label="Notifications" onPress={() => Alert.alert('Notifications', 'Notification preferences coming soon.')} />
+        <Row label="Notifications" onPress={() => Linking.openSettings().catch(() => Alert.alert('Notifications', 'Open your phone settings to manage Vouch notifications.'))} />
         <Row label="Privacy and safety" onPress={() => Linking.openURL(`${WEB}/privacy`)} />
         <Text style={{ color: C.dim, fontSize: 12, fontWeight: '700', textTransform: 'uppercase', marginTop: 18, marginBottom: 4 }}>Support</Text>
         <Row label="Help center" onPress={() => Linking.openURL(`${WEB}/support`)} />
+        <Row label="Security" onPress={() => Linking.openURL(`${WEB}/security`)} />
         <Row label="Terms of service" onPress={() => Linking.openURL(`${WEB}/terms`)} />
         <Row label="Privacy policy" onPress={() => Linking.openURL(`${WEB}/privacy`)} />
         <Text style={{ color: C.dim, fontSize: 12, fontWeight: '700', textTransform: 'uppercase', marginTop: 18, marginBottom: 4 }}>Danger zone</Text>

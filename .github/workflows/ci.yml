@@ -39,7 +39,10 @@ jobs:
         run: cd server && npm run migrate 2>/dev/null || true
       - name: Typecheck
         run: cd server && npm run typecheck
-      - name: Tests
+      # PAYMENTS_ENABLED is set per suite on purpose. Node's --env-file never
+      # overrides an existing process env var, so a job-wide value would leak
+      # into the beta suite and make it test the wrong mode.
+      - name: Tests (payments enabled)
         env:
           NODE_ENV: test
           PAYMENTS_ENABLED: "true"
@@ -56,7 +59,25 @@ jobs:
           REVIEW_PHONE: "9000000999"
           REVIEW_CODE: "424242"
           SETTLEMENT_INTERVAL_MS: "0"
-        run: cd server && npm test
+        run: cd server && npm run test:payments
+      - name: Tests (beta mode)
+        env:
+          NODE_ENV: test
+          PAYMENTS_ENABLED: "false"
+          PORT: "0"
+          DATABASE_URL: postgres://vouch:vouch@127.0.0.1:5432/vouch_test
+          DATABASE_SSL: "false"
+          JWT_SECRET: test-secret-test-secret-test-secret-12
+          OTP_PEPPER: test-pepper-test-pepper
+          CORS_ORIGINS: "*"
+          SMS_PROVIDER: console
+          PAYMENT_PROVIDER: mock
+          ADMIN_TOKEN: test-admin-token-1234
+          MAX_LIVE_IDEAS: "5"
+          REVIEW_PHONE: "9000000999"
+          REVIEW_CODE: "424242"
+          SETTLEMENT_INTERVAL_MS: "0"
+        run: cd server && npm run test:beta
 
   mobile:
     runs-on: ubuntu-latest
@@ -69,5 +90,5 @@ jobs:
           cache-dependency-path: mobile/package-lock.json
       - run: cd mobile && npm ci
       - run: cd mobile && npm run typecheck
+      # Android-only beta: the iOS export is not part of the shipped target.
       - run: cd mobile && npx expo export --platform android
-      - run: cd mobile && npx expo export --platform ios

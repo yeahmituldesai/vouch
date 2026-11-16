@@ -5,6 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect } from '@react-navigation/native';
 import { api, ApiError } from '../api';
 import { useAuth } from '../auth';
+import { WEB } from '../config';
 import { ago, fmt, inr } from '../format';
 import { useNav } from '../navigation';
 import { C, T } from '../theme';
@@ -13,7 +14,6 @@ import { Icon } from '../Icon';
 import { Tile } from './Explore';
 import type { Idea, Order, User } from '../types';
 
-const WEB = process.env.EXPO_PUBLIC_WEB_URL ?? 'https://vouch.example.com';
 type Counts = { ideas: number; vouches: number; preorders: number; followers: number; following: number; unread?: number };
 
 export function Profile() {
@@ -71,13 +71,9 @@ export function Profile() {
           <Text style={{ color: C.t, fontSize: 15, fontWeight: '700', marginTop: 3 }}>{idea.name}</Text>
           <Text numberOfLines={2} style={{ color: '#d1d1d6', fontSize: 14, lineHeight: 20, marginTop: 2 }}>{idea.description}</Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 11 }}>
-            <Pressable accessibilityLabel="Reply" style={{ marginRight: 16 }}>
+            <Pressable onPress={() => nav.navigate('Comments', { id: idea.id, name: idea.name })} accessibilityLabel="Reply" style={{ marginRight: 16 }}>
               <Icon name="chat" size={20} color={C.g} w={2} />
               <Text style={{ color: C.g, fontSize: 13, marginTop: 2 }}>{fmt(idea.stats.comments)}</Text>
-            </Pressable>
-            <Pressable onPress={() => { tap(); }} accessibilityLabel="Repost" style={{ marginRight: 16 }}>
-              <Icon name="x" size={20} color={C.g} w={2} />
-              <Text style={{ color: C.g, fontSize: 13, marginTop: 2 }}>{fmt(idea.stats.vouches)}</Text>
             </Pressable>
             <Pressable onPress={() => vouchAction(idea.id)} accessibilityLabel={idea.viewer.vouched ? 'Liked' : 'Like'} style={{ marginRight: 16 }}>
               <Icon name="vouch" size={20} color={idea.viewer.vouched ? '#ff3b30' : C.g} w={2} />
@@ -94,17 +90,19 @@ export function Profile() {
 
   function vouchAction(id: string) {
     tap();
-    void api<{ vouched: boolean; count: number }>(`/ideas/${id}/vouch`, { method: 'POST' }).catch(() => {});
+    api<{ vouched: boolean; count: number }>(`/ideas/${id}/vouch`, { method: 'POST' })
+      .then((r) => {
+        const patch = (list: Idea[]) => list.map((x) => (x.id === id ? { ...x, viewer: { ...x.viewer, vouched: r.vouched }, stats: { ...x.stats, vouches: r.count } } : x));
+        setIdeas(patch); setVouched(patch); setWanted(patch);
+      })
+      .catch(() => Alert.alert('Could not vouch', 'Try again'));
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: C.bg }}>
+    <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: C.bg }}>
       <ScrollView contentContainerStyle={{ paddingBottom: 120 }} refreshControl={<RefreshControl tintColor="#fff" refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} />}>
-        {/* X-style header: black bar with back arrow + title */}
-        <View style={{ backgroundColor: '#000', paddingHorizontal: 16, paddingTop: 6, paddingBottom: 4 }}>
-          <Pressable onPress={() => nav.goBack()} accessibilityLabel="Back" style={{ flexDirection: 'row', alignItems: 'center', paddingTop: 6 }}>
-            <Icon name="back" size={18} color={C.t} w={2} />
-          </Pressable>
+        {/* X-style header: title bar for your own profile (a tab root, so no back arrow). */}
+        <View style={{ backgroundColor: '#000', paddingHorizontal: 16, paddingTop: 10, paddingBottom: 4 }}>
           <Text style={{ color: C.t, fontSize: 18, fontWeight: '600', marginLeft: 6 }}>{user?.name || 'Profile'}</Text>
         </View>
 
@@ -136,7 +134,7 @@ export function Profile() {
         <View style={{ paddingHorizontal: 16, marginTop: 10 }}>
           <Text style={{ color: C.t, fontSize: 22, fontWeight: '800' }}>{user?.name || 'Your name'}</Text>
           {user?.role && user.role !== 'member' ? (
-            <View style={{ marginTop: 3, marginRight: 8, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10, backgroundColor: C.s2 }}>
+            <View style={{ alignSelf: 'flex-start', marginTop: 4, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10, backgroundColor: C.s2 }}>
               <Text style={{ color: C.dim, fontSize: 11, fontWeight: '700', textTransform: 'uppercase' }}>{user.role}</Text>
             </View>
           ) : null}
@@ -188,6 +186,6 @@ export function Profile() {
           )}
         </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }

@@ -25,8 +25,8 @@ const SLIDES = [
 ];
 function Illustration({ n }: { n: number }) {
   if (n === 0) return (<View style={[card, { width: 230, padding: 14 }]}><Art category="Snacks" height={170} radius={16} /><Text style={[T.b, { fontWeight: '700', marginTop: 12 }]}>Your idea</Text><Text style={T.sm}>Your brand</Text></View>);
-  if (n === 1) return (<View style={[card, { alignItems: 'center' }]}><Text style={T.sm}>Vouches over time</Text><View style={{ alignSelf: 'stretch', marginTop: 16 }}><Bar percent={0} /></View><View style={{ flexDirection: 'row', justifyContent: 'space-between', alignSelf: 'stretch', marginTop: 8 }}><Text style={T.sm}>Interest grows</Text><Text style={T.sm}>Honest feedback</Text></View></View>);
-  return (<View style={card}><View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' }}><Text style={{ color: C.t, fontSize: 44, fontWeight: '800', letterSpacing: -1.5 }}>—</Text><Text style={T.sm}>of your goal</Text></View><View style={{ marginTop: 14 }}><Bar percent={0} /></View><View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 }}><Text style={T.sm}>Track progress</Text><Text style={T.sm}>Before you build</Text></View></View>);
+  if (n === 1) return (<View style={[card, { alignItems: 'center' }]}><Text style={T.sm}>Vouches over time</Text><View style={{ alignSelf: 'stretch', marginTop: 16 }}><Bar percent={64} /></View><View style={{ flexDirection: 'row', justifyContent: 'space-between', alignSelf: 'stretch', marginTop: 8 }}><Text style={T.sm}>Interest grows</Text><Text style={T.sm}>Honest feedback</Text></View></View>);
+  return (<View style={card}><View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' }}><Text style={{ color: C.t, fontSize: 44, fontWeight: '800', letterSpacing: -1.5 }}>64%</Text><Text style={T.sm}>of your goal</Text></View><View style={{ marginTop: 14 }}><Bar percent={64} /></View><View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 }}><Text style={T.sm}>Track progress</Text><Text style={T.sm}>Before you build</Text></View></View>);
 }
 
 export function Onboarding() {

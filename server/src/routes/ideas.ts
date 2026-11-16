@@ -109,10 +109,10 @@ r.post('/:id/want', requireAuth, wrap(async (req, res) => {
 
 r.get('/:id/comments', optionalAuth, wrap(async (req, res) => {
   const { rows } = await q(
-    `SELECT c.id, c.body, c.created_at, u.id AS user_id, u.name, u.handle FROM comments c JOIN users u ON u.id = c.user_id
+    `SELECT c.id, c.body, c.created_at, u.id AS user_id, u.name, u.handle, u.avatar_url FROM comments c JOIN users u ON u.id = c.user_id
       WHERE c.idea_id = $1 AND NOT EXISTS (SELECT 1 FROM blocks b WHERE b.blocker_id = $2::uuid AND b.blocked_id = c.user_id)
       ORDER BY c.created_at DESC LIMIT 50`, [idParam(req), req.user?.id ?? null]);
-  res.json({ comments: rows.map((c) => ({ id: c.id, body: c.body, createdAt: c.created_at, author: { id: c.user_id, name: c.name, handle: c.handle } })) });
+  res.json({ comments: rows.map((c) => ({ id: c.id, body: c.body, createdAt: c.created_at, author: { id: c.user_id, name: c.name, handle: c.handle, avatarUrl: c.avatar_url ?? null } })) });
 }));
 
 r.post('/:id/comments', requireAuth, wrap(async (req, res) => {
@@ -124,7 +124,8 @@ r.post('/:id/comments', requireAuth, wrap(async (req, res) => {
   if (recent >= 5) throw new HttpError(429, 'SLOW_DOWN', 'You are commenting too fast');
   const c = (await q('INSERT INTO comments (idea_id, user_id, body) VALUES ($1,$2,$3) RETURNING id, body, created_at', [id, req.user!.id, b.body])).rows[0];
   if (idea.owner_id !== req.user!.id) await notify(pool, idea.owner_id, 'feedback', 'New feedback', `${idea.name}: ${b.body.slice(0, 80)}`, { ideaId: id });
-  res.status(201).json({ comment: { id: c.id, body: c.body, createdAt: c.created_at, author: { id: req.user!.id, name: req.user!.name, handle: req.user!.handle } } });
+  const me = (await q('SELECT avatar_url FROM users WHERE id = $1', [req.user!.id])).rows[0];
+  res.status(201).json({ comment: { id: c.id, body: c.body, createdAt: c.created_at, author: { id: req.user!.id, name: req.user!.name, handle: req.user!.handle, avatarUrl: me?.avatar_url ?? null } } });
 }));
 
 r.post('/:id/report', requireAuth, wrap(async (req, res) => {

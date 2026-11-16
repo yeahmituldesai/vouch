@@ -10,9 +10,9 @@ export type Idea = {
 export type User = { id: string; name: string; handle: string; bio: string; avatarUrl: string | null; bannerUrl: string | null; location: string; website: string; role: string; createdAt: string };
 export type Notice = { id: string; type: string; title: string; body: string; data: { ideaId?: string }; read: boolean; createdAt: string };
 export type Order = { id: string; qty: number; amountPaise: number; status: string; createdAt: string; idea: { id: string; name: string; category: Idea['category'] } };
-export type Comment = { id: string; body: string; createdAt: string; author: { id: string; name: string; handle: string } };
+export type Comment = { id: string; body: string; createdAt: string; author: { id: string; name: string; handle: string; avatarUrl?: string | null } };
 export type RootParams = {
   Onboarding: undefined; Phone: undefined; Setup: undefined; Tabs: undefined;
   Idea: { id: string }; Comments: { id: string; name: string }; PreOrder: { id: string }; Create: undefined; Demand: { id: string }; EditProfile: undefined;
-  UserProfile: { id: string }; Followers: { id: string; name: string }; Following: { id: string; name: string }; Settings: undefined;
+  UserProfile: { id?: string; handle?: string }; Followers: { id: string; name: string }; Following: { id: string; name: string }; Settings: undefined;
 };

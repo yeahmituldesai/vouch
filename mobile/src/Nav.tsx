@@ -7,6 +7,7 @@ import { Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api } from './api';
 import { useAuth } from './auth';
+import { WEB } from './config';
 import { Icon, IconName } from './Icon';
 import { C } from './theme';
 import { Press, tap } from './ui';
@@ -54,20 +55,20 @@ function TabBar({ state, navigation }: BottomTabBarProps) {
     </View>
   );
 }
-const Dummy = () => null;
+const Noop = () => null;
 function Tabs() {
   return (
     <Tab.Navigator tabBar={(p) => <TabBar {...p} />} screenOptions={{ headerShown: false }}>
       <Tab.Screen name="Home" component={Home} /><Tab.Screen name="Explore" component={Explore} />
-      <Tab.Screen name="New" component={Dummy} /><Tab.Screen name="Alerts" component={Alerts} /><Tab.Screen name="Profile" component={Profile} />
+      <Tab.Screen name="New" component={Noop} /><Tab.Screen name="Alerts" component={Alerts} /><Tab.Screen name="Profile" component={Profile} />
     </Tab.Navigator>
   );
 }
 const Setup = () => <EditProfile setup />;
 
 const linking: LinkingOptions<RootParams> = {
-  prefixes: ['vouch://', process.env.EXPO_PUBLIC_WEB_URL ?? 'https://vouch.example.com'],
-  config: { screens: { Idea: 'i/:id' } },
+  prefixes: ['vouch://', WEB],
+  config: { screens: { Idea: 'i/:id', UserProfile: 'u/:handle' } },
 };
 
 export function Nav() {

@@ -5,6 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { RouteProp, useRoute } from '@react-navigation/native';
 import { api } from '../api';
 import { ArtGlyph } from '../Art';
+import { WEB } from '../config';
 import { Icon } from '../Icon';
 import { useAuth } from '../auth';
 import { inr } from '../format';
@@ -13,8 +14,6 @@ import { C, T } from '../theme';
 import { Avatar, Bar, Button, CountUp, Pill, Press, Rise, success, tap } from '../ui';
 import { errMsg, vouchApi } from './Home';
 import type { Idea, RootParams } from '../types';
-
-const WEB = process.env.EXPO_PUBLIC_WEB_URL ?? 'https://vouch.example.com';
 
 export function IdeaScreen() {
   const nav = useNav();

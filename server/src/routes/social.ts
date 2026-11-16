@@ -9,8 +9,7 @@ import { notify } from '../lib/notify';
 const r = Router();
 
 // Public-ish profile (auth required for viewer context)
-r.get('/users/:id', requireAuth, wrap(async (req, res) => {
-  const id = parse(uuid, req.params.id);
+async function profileFor(id: string, viewerId: string) {
   const u = (await q('SELECT * FROM users WHERE id = $1', [id])).rows[0];
   if (!u || u.deleted_at) throw new HttpError(404, 'NOT_FOUND', 'User not found');
   if (u.is_banned) throw new HttpError(404, 'NOT_FOUND', 'User not found');
@@ -20,8 +19,22 @@ r.get('/users/:id', requireAuth, wrap(async (req, res) => {
             (SELECT count(*)::int FROM follows WHERE followee_id = $1) AS followers,
             (SELECT count(*)::int FROM follows WHERE follower_id = $1) AS following`,
     [id])).rows[0];
-  const viewerFollowing = (await q('SELECT 1 FROM follows WHERE follower_id = $1 AND followee_id = $2', [req.user!.id, id])).rows[0] ? true : false;
-  res.json({ user: { ...publicUser(u), phone: undefined }, counts: { ...c, unread: 0 }, viewer: { following: viewerFollowing, isSelf: req.user!.id === id } });
+  const viewerFollowing = (await q('SELECT 1 FROM follows WHERE follower_id = $1 AND followee_id = $2', [viewerId, id])).rows[0] ? true : false;
+  return { user: { ...publicUser(u), phone: undefined }, counts: { ...c, unread: 0 }, viewer: { following: viewerFollowing, isSelf: viewerId === id } };
+}
+
+// Shared profile links use /u/:handle, so the app must resolve a handle too.
+r.get('/users/by-handle/:handle', requireAuth, wrap(async (req, res) => {
+  const handle = String(req.params.handle ?? '');
+  if (!/^[a-z0-9_]{3,20}$/i.test(handle)) throw new HttpError(404, 'NOT_FOUND', 'User not found');
+  const row = (await q('SELECT id FROM users WHERE lower(handle) = lower($1)', [handle])).rows[0];
+  if (!row) throw new HttpError(404, 'NOT_FOUND', 'User not found');
+  res.json(await profileFor(row.id, req.user!.id));
+}));
+
+r.get('/users/:id', requireAuth, wrap(async (req, res) => {
+  const id = parse(uuid, req.params.id);
+  res.json(await profileFor(id, req.user!.id));
 }));
 
 r.post('/users/:id/follow', requireAuth, wrap(async (req, res) => {

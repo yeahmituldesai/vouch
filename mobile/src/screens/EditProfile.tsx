@@ -19,7 +19,7 @@ export function EditProfile({ setup }: { setup?: boolean }) {
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
   async function uploadAvatar() {
-    const r = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, quality: 0.8, base64: true });
+    const r = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.8, base64: true });
     if (r.canceled || !r.assets?.[0]?.base64) return;
     try {
       const dataUrl = 'data:image/jpeg;base64,' + r.assets[0].base64;
@@ -28,7 +28,7 @@ export function EditProfile({ setup }: { setup?: boolean }) {
     } catch (e) { setErr(e instanceof ApiError ? e.message : 'Upload failed'); }
   }
   async function uploadBanner() {
-    const r = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, quality: 0.8, base64: true });
+    const r = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.8, base64: true });
     if (r.canceled || !r.assets?.[0]?.base64) return;
     try {
       const dataUrl = 'data:image/jpeg;base64,' + r.assets[0].base64;

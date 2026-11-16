@@ -42,7 +42,7 @@ export function CommentsScreen() {
           ListEmptyComponent={loaded ? (err ? <Empty title="Could not load feedback" sub={err} /> : <Empty title="No feedback yet" sub="Be the first to tell the founder what you think." />) : <View />}
           renderItem={({ item, index }) => (
             <Rise i={index}><View style={{ flexDirection: 'row', paddingVertical: 12, borderTopWidth: 1, borderTopColor: C.ln }}>
-              <Avatar name={item.author.name || item.author.handle} size={30} />
+              <Avatar name={item.author.name || item.author.handle} url={item.author.avatarUrl} size={30} />
               <View style={{ flex: 1, marginLeft: 10 }}>
                 <Text style={{ color: C.t, fontSize: 13.5, fontWeight: '600' }}>{item.author.name || '@' + item.author.handle}<Text style={{ color: C.g, fontWeight: '400' }}> · {ago(item.createdAt)}</Text></Text>
                 <Text style={{ color: '#d1d1d6', fontSize: 15, lineHeight: 21, marginTop: 2 }}>{item.body}</Text>

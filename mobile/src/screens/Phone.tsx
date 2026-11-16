@@ -7,12 +7,12 @@ import * as SecureStore from 'expo-secure-store';
 import { ApiError, api } from '../api';
 import { setToken } from '../api';
 import { useAuth } from '../auth';
+import { WEB } from '../config';
 import { C, T } from '../theme';
 import { Button, ErrorText, Press, Rise } from '../ui';
 
 WebBrowser.maybeCompleteAuthSession();
 
-const WEB = process.env.EXPO_PUBLIC_WEB_URL ?? 'https://vouch.example.com';
 const GOOGLE_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID;
 const GOOGLE_ANDROID_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID || '700553469092-aaa23m9jhjtf2a95m25qp7aiu6vi79b3.apps.googleusercontent.com';
 
