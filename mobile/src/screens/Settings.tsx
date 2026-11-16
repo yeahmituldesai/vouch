@@ -33,7 +33,6 @@ export function Settings() {
         <Row label="Edit profile" onPress={() => nav.navigate('EditProfile')} />
 
         <Row label="Notifications" onPress={() => Linking.openSettings().catch(() => Alert.alert('Notifications', 'Open your phone settings to manage Vouch notifications.'))} />
-        <Row label="Privacy and safety" onPress={() => Linking.openURL(`${WEB}/privacy`)} />
         <Text style={{ color: C.dim, fontSize: 12, fontWeight: '700', textTransform: 'uppercase', marginTop: 18, marginBottom: 4 }}>Support</Text>
         <Row label="Help center" onPress={() => Linking.openURL(`${WEB}/support`)} />
         <Row label="Security" onPress={() => Linking.openURL(`${WEB}/security`)} />

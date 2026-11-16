@@ -182,7 +182,11 @@ export function Profile() {
               <Rise key={x.id} i={i}><PostRow idea={x} /></Rise>
             ))
           ) : (
-            <Empty title="Nothing here yet" sub="Post your first idea and find out if people want it." action={<Button title="Post an idea" onPress={() => nav.navigate('Create')} />} />
+            <Empty
+              title={tab === 'Posts' ? 'No posts yet' : tab === 'Vouched' ? 'No vouches yet' : 'Nothing marked yet'}
+              sub={tab === 'Posts' ? 'Post your first idea and find out if people want it.' : tab === 'Vouched' ? 'Vouch for an idea you would buy and it will show up here.' : 'Tap "I\'m interested" on an idea and it will show up here.'}
+              action={tab === 'Posts' ? <Button title="Post an idea" onPress={() => nav.navigate('Create')} /> : undefined}
+            />
           )}
         </View>
       </ScrollView>
