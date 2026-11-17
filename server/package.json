@@ -11,6 +11,7 @@
     "build": "tsc -p tsconfig.json",
     "start": "node dist/index.js",
     "migrate": "tsx --env-file=.env src/migrate.ts",
+    "migrate:images": "tsx --env-file=.env scripts/migrate-images-to-r2.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "npm run test:payments && npm run test:beta",
     "test:payments": "node --env-file=.env.test --import tsx --test --test-concurrency=1 test/api.test.ts",

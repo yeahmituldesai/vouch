@@ -6,10 +6,18 @@ import * as Sentry from '@sentry/node';
 import { pool } from './db';
 import { migrate } from './migrate';
 import { runSettlement } from './lib/settle';
+import { storageBackend } from './lib/images';
 
 async function main() {
   if (config.SENTRY_DSN) {
     Sentry.init({ dsn: config.SENTRY_DSN, environment: config.NODE_ENV, tracesSampleRate: 0.1 });
+  }
+  if (config.NODE_ENV === 'production' && storageBackend() === 'database') {
+    console.warn(
+      '[images] Object storage is not configured (set all R2_* or all SUPABASE_* env vars); image uploads are stored as base64 data URLs in Postgres.',
+    );
+  } else if (config.NODE_ENV === 'production') {
+    console.log(`[images] Object storage backend: ${storageBackend()}.`);
   }
   await migrate();
   const pub = path.join(__dirname, '..', 'public');

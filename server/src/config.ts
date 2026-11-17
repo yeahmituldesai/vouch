@@ -39,6 +39,11 @@ const schema = z
     R2_SECRET_KEY: z.string().optional().or(z.literal('')),
     R2_BUCKET: z.string().optional().or(z.literal('')),
     R2_PUBLIC_URL: z.string().optional().or(z.literal('')),
+    // Optional image uploads via Supabase Storage (S3-compatible, free tier, no card).
+    // SUPABASE_URL is the project URL (https://<ref>.supabase.co).
+    SUPABASE_URL: z.string().url().optional().or(z.literal('')),
+    SUPABASE_SERVICE_ROLE_KEY: z.string().optional().or(z.literal('')),
+    SUPABASE_STORAGE_BUCKET: z.string().optional().or(z.literal('')),
     SETTLEMENT_INTERVAL_MS: z.coerce.number().default(600000),
   })
   .superRefine((c, ctx) => {
@@ -58,6 +63,16 @@ const schema = z
       ctx.addIssue({ code: 'custom', message: 'Razorpay keys and webhook secret are required' });
     if (c.SMS_PROVIDER === 'msg91' && !(c.MSG91_AUTH_KEY && c.MSG91_TEMPLATE_ID))
       ctx.addIssue({ code: 'custom', message: 'MSG91_AUTH_KEY and MSG91_TEMPLATE_ID are required' });
+    // R2 image storage is all-or-nothing: a partial set silently falls back to
+    // base64 data URLs in Postgres, which looks configured but isn't.
+    const r2Vals = [c.R2_ACCOUNT_ID, c.R2_ACCESS_KEY, c.R2_SECRET_KEY, c.R2_BUCKET, c.R2_PUBLIC_URL];
+    const r2Set = r2Vals.filter((v) => !!v).length;
+    if (r2Set > 0 && r2Set < r2Vals.length)
+      ctx.addIssue({ code: 'custom', message: 'R2 storage is partially configured: set all of R2_ACCOUNT_ID, R2_ACCESS_KEY, R2_SECRET_KEY, R2_BUCKET and R2_PUBLIC_URL, or none' });
+    const sbVals = [c.SUPABASE_URL, c.SUPABASE_SERVICE_ROLE_KEY, c.SUPABASE_STORAGE_BUCKET];
+    const sbSet = sbVals.filter((v) => !!v).length;
+    if (sbSet > 0 && sbSet < sbVals.length)
+      ctx.addIssue({ code: 'custom', message: 'Supabase Storage is partially configured: set all of SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY and SUPABASE_STORAGE_BUCKET, or none' });
   });
 
 const parsed = schema.safeParse(process.env);

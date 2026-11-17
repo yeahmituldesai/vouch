@@ -48,6 +48,29 @@ export function r2Enabled(): boolean {
   return !!(config.R2_ACCOUNT_ID && config.R2_ACCESS_KEY && config.R2_SECRET_KEY && config.R2_BUCKET && config.R2_PUBLIC_URL);
 }
 
+export function supabaseStorageEnabled(): boolean {
+  return !!(config.SUPABASE_URL && config.SUPABASE_SERVICE_ROLE_KEY && config.SUPABASE_STORAGE_BUCKET);
+}
+
+// True when some but not all vars for a backend are set.
+export function r2PartialConfig(): boolean {
+  const vals = [config.R2_ACCOUNT_ID, config.R2_ACCESS_KEY, config.R2_SECRET_KEY, config.R2_BUCKET, config.R2_PUBLIC_URL];
+  const n = vals.filter(Boolean).length;
+  return n > 0 && n < vals.length;
+}
+export function supabasePartialConfig(): boolean {
+  const vals = [config.SUPABASE_URL, config.SUPABASE_SERVICE_ROLE_KEY, config.SUPABASE_STORAGE_BUCKET];
+  const n = vals.filter(Boolean).length;
+  return n > 0 && n < vals.length;
+}
+
+// Which backend is actually serving uploads right now (R2 wins over Supabase).
+export function storageBackend(): 'r2' | 'supabase' | 'database' {
+  if (r2Enabled()) return 'r2';
+  if (supabaseStorageEnabled()) return 'supabase';
+  return 'database';
+}
+
 let client: S3Client | null = null;
 function getClient(): S3Client {
   if (client) return client;
@@ -78,7 +101,26 @@ export async function uploadImage(dataUrl: string, prefix: string, kind: ImageKi
     await getClient().send(new PutObjectCommand({ Bucket: config.R2_BUCKET, Key: key, Body: buf, ContentType: mime }));
     return `${config.R2_PUBLIC_URL!.replace(/\/$/, '')}/${key}`;
   }
-  // No R2 configured: store the (already compressed) image inline so the beta
-  // works without a third-party account. The client crops and compresses first.
+  if (supabaseStorageEnabled()) {
+    const key = `${prefix}/${crypto.randomBytes(12).toString('hex')}.${MIME_EXT[mime]}`;
+    const url = `${config.SUPABASE_URL!.replace(/\\/$/, '')}/storage/v1/object/${config.SUPABASE_STORAGE_BUCKET}/${key}`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${config.SUPABASE_SERVICE_ROLE_KEY}`,
+        apikey: config.SUPABASE_SERVICE_ROLE_KEY!,
+        'Content-Type': mime,
+        'x-upsert': 'false',
+      },
+      body: buf as any,
+    });
+    if (!res.ok) {
+      const text = await res.text().catch(() => '');
+      throw new HttpError(502, 'STORAGE_UPLOAD_FAILED', `Supabase Storage upload failed (${res.status}): ${text.slice(0, 200)}`);
+    }
+    return `${config.SUPABASE_URL!.replace(/\\/$/, '')}/storage/v1/object/public/${config.SUPABASE_STORAGE_BUCKET}/${key}`;
+  }
+  // No object storage configured: store the (already compressed) image inline so
+  // the beta works without a third-party account. The client crops and compresses first.
   return `data:${mime};base64,${m[2].replace(/\s+/g, '')}`;
 }
