@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Alert, FlatList, KeyboardAvoidingView, Platform, Text, TextInput, View } from 'react-native';
+import { FlatList, KeyboardAvoidingView, Platform, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { RouteProp, useRoute } from '@react-navigation/native';
 import { api } from '../api';
+import { showAlert } from '../alert';
 import { Icon } from '../Icon';
 import { ago } from '../format';
 import { useNav } from '../navigation';
@@ -30,7 +31,7 @@ export function CommentsScreen() {
     if (!body) return;
     setBusy(true); tap();
     try { const r = await api<{ comment: Comment }>(`/ideas/${params.id}/comments`, { method: 'POST', body: { body } }); setItems((l) => [r.comment, ...l]); setText(''); }
-    catch (e) { Alert.alert('Could not send', errMsg(e)); }
+    catch (e) { showAlert('Could not send', errMsg(e)); }
     setBusy(false);
   }
   return (

@@ -16,6 +16,7 @@ import socialRoutes from './routes/social';
 import webhookRoutes from './routes/webhooks';
 import adminRoutes from './routes/admin';
 import { imagesEnabled, UPLOAD_BODY_LIMIT } from './lib/images';
+import { phoneLoginEnabled } from './lib/sms';
 import { APP_VERSION } from './lib/appVersion';
 
 export function createApp() {
@@ -43,7 +44,12 @@ export function createApp() {
     }
   });
 
-  app.get('/api/v1/config', (_req, res) => res.json({ paymentsEnabled: config.PAYMENTS_ENABLED === 'true', imagesEnabled: imagesEnabled() }));
+  app.get('/api/v1/config', (_req, res) =>
+    res.json({
+      paymentsEnabled: config.PAYMENTS_ENABLED === 'true',
+      imagesEnabled: imagesEnabled(),
+      phoneLoginEnabled: phoneLoginEnabled(),
+    }));
   app.get('/api/v1/app-version', (_req, res) => res.json(APP_VERSION));
 
   // Public landing page for shared idea links (the app shares /i/:id URLs).

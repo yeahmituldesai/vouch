@@ -31,6 +31,26 @@ export type VersionInfo = {
 
 type UpdateStatus = 'idle' | 'downloading' | 'ready' | 'error';
 
+/**
+ * Build number of the binary that is actually running.
+ *
+ * `nativeBuildVersion` comes from the installed APK's manifest, so it is the
+ * authoritative value. `expoConfig.android.versionCode` is only a fallback: it
+ * reflects the config the JS bundle was built with and can be ahead of the
+ * installed APK, which is exactly what made the old prompt impossible to clear.
+ * Returns null when neither source gives a usable build number.
+ */
+function installedVersionCode(): number | null {
+  for (const value of [
+    Constants.nativeBuildVersion,
+    Constants.expoConfig?.android?.versionCode,
+  ]) {
+    const code = Number(value);
+    if (Number.isFinite(code) && code > 0) return Math.floor(code);
+  }
+  return null;
+}
+
 export function UpdateChecker() {
   const [info, setInfo] = useState<VersionInfo | null>(null);
   const [visible, setVisible] = useState(false);
@@ -60,15 +80,25 @@ export function UpdateChecker() {
     if (Platform.OS !== 'android') return;
     try {
       const v = await api<VersionInfo>('/app-version');
-      const current = Number(
-        Constants.nativeBuildVersion ??
-          Constants.expoConfig?.android?.versionCode ??
-          1,
-      );
-      if (v.versionCode > current) {
-        setInfo(v);
-        setVisible(true);
+      const remote = Number(v?.versionCode);
+      const current = installedVersionCode();
+
+      // Only prompt when we can prove the server has a newer build than the
+      // binary that is running. Unknown or invalid values fail closed (no
+      // prompt) so a bad build number can never trap the user in the modal.
+      if (!Number.isFinite(remote) || remote <= 0) return;
+      if (current === null) {
+        console.warn('[update] Installed versionCode is unknown; skipping update prompt.');
+        return;
       }
+      if (remote <= current) {
+        // Server is not ahead of this build: make sure no stale prompt remains.
+        setVisible(false);
+        return;
+      }
+
+      setInfo(v);
+      setVisible(true);
     } catch {
       /* offline or server starting up */
     }

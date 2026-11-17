@@ -1,9 +1,10 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { ActionSheetIOS, Alert, Image, Platform, Pressable, ScrollView, Share, Text, View } from 'react-native';
+import { Image, Platform, Pressable, ScrollView, Share, Text, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { RouteProp, useRoute } from '@react-navigation/native';
 import { api } from '../api';
+import { showAlert, showActionSheet } from '../alert';
 import { ArtGlyph } from '../Art';
 import { WEB } from '../config';
 import { Icon } from '../Icon';
@@ -40,33 +41,49 @@ export function IdeaScreen() {
   async function vouch() {
     tap();
     try { const r = await vouchApi(idea!.id); setIdea((x) => x && { ...x, viewer: { ...x.viewer, vouched: r.vouched }, stats: { ...x.stats, vouches: r.count } }); if (r.vouched) success(); }
-    catch (e) { Alert.alert('Could not vouch', errMsg(e)); }
+    catch (e) { showAlert('Could not vouch', errMsg(e)); }
   }
   async function follow() {
     try { const r = await api<{ following: boolean }>(`/users/${idea!.owner.id}/follow`, { method: 'POST' }); setIdea((x) => x && { ...x, viewer: { ...x.viewer, followingOwner: r.following } }); }
-    catch (e) { Alert.alert('Could not follow', errMsg(e)); }
+    catch (e) { showAlert('Could not follow', errMsg(e)); }
   }
   async function want() {
     tap();
     try { const r = await api<{ wanted: boolean; count: number }>(`/ideas/${idea!.id}/want`, { method: 'POST' }); setIdea((x) => x && { ...x, viewer: { ...x.viewer, wanted: r.wanted }, stats: { ...x.stats, preorders: r.count }, percent: Math.min(100, Math.round((r.count / x.goal) * 100)) }); if (r.wanted) success(); }
-    catch (e) { Alert.alert('Could not save', errMsg(e)); }
+    catch (e) { showAlert('Could not save', errMsg(e)); }
   }
   const share = () => Share.share({ message: `Would you buy ${idea.name}? Vouch for it on Vouch.\n${WEB}/i/${idea.id}` });
   function report() {
-    const send = (reason: string) => api(`/ideas/${idea!.id}/report`, { method: 'POST', body: { reason } }).then(() => Alert.alert('Thanks', 'We will review this idea.')).catch((e) => Alert.alert('Could not report', errMsg(e)));
-    Alert.alert('Report this idea', 'What is wrong with it?', [
-      { text: 'Spam or fake', onPress: () => send('Spam or fake') }, { text: 'Offensive or unsafe', onPress: () => send('Offensive or unsafe') },
-      { text: 'Misleading', onPress: () => send('Misleading') }, { text: 'Cancel', style: 'cancel' }]);
+    const send = (reason: string) => api(`/ideas/${idea!.id}/report`, { method: 'POST', body: { reason } }).then(() => showAlert('Thanks', 'We will review this idea.')).catch((e) => showAlert('Could not report', errMsg(e)));
+    showActionSheet({
+      title: 'Report this idea',
+      message: 'What is wrong with it?',
+      options: [
+        { text: 'Spam or fake', style: 'default', onPress: () => send('Spam or fake') },
+        { text: 'Offensive or unsafe', style: 'default', onPress: () => send('Offensive or unsafe') },
+        { text: 'Misleading', style: 'default', onPress: () => send('Misleading') },
+        { text: 'Cancel', style: 'cancel' },
+      ],
+      cancelButtonIndex: 3,
+    });
   }
   function block() {
-    Alert.alert(`Block ${idea!.owner.name || '@' + idea!.owner.handle}?`, 'You will no longer see their ideas or comments.', [
+    showAlert(`Block ${idea!.owner.name || '@' + idea!.owner.handle}?`, 'You will no longer see their ideas or comments.', [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Block', style: 'destructive', onPress: () => api(`/users/${idea!.owner.id}/block`, { method: 'POST' }).then(() => nav.goBack()).catch((e) => Alert.alert('Could not block', errMsg(e))) }]);
+      { text: 'Block', style: 'destructive', onPress: () => api(`/users/${idea!.owner.id}/block`, { method: 'POST' }).then(() => nav.goBack()).catch((e) => showAlert('Could not block', errMsg(e))) }]);
   }
   function more() {
-    if (mine) return;
-    if (Platform.OS === 'ios') ActionSheetIOS.showActionSheetWithOptions({ options: ['Report idea', 'Block founder', 'Cancel'], cancelButtonIndex: 2, destructiveButtonIndex: 1 }, (i) => { if (i === 0) report(); if (i === 1) block(); });
-    else Alert.alert('More', undefined, [{ text: 'Report idea', onPress: report }, { text: 'Block founder', onPress: block, style: 'destructive' }, { text: 'Cancel', style: 'cancel' }]);
+    if (!idea || mine) return;
+    showActionSheet({
+      title: idea.name,
+      options: [
+        { text: 'Report idea', style: 'default', onPress: report },
+        { text: `Block @${idea.owner.handle}`, style: 'destructive', onPress: block },
+        { text: 'Cancel', style: 'cancel' },
+      ],
+      cancelButtonIndex: 2,
+      destructiveButtonIndex: 1,
+    });
   }
   const cta = mine ? 'This is your idea' : !live ? (idea.status === 'funded' ? 'Goal reached' : 'Closed') : pays ? `Pre-order · ${inr(idea.pricePaise ?? 0)}` : idea.viewer.wanted ? 'You’re interested ✓' : 'I’m interested';
   const Round = ({ icon, onPress, label }: { icon: 'back' | 'share' | 'more'; onPress: () => void; label: string }) => (

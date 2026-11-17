@@ -1,9 +1,10 @@
 import React, { useCallback, useState } from 'react';
-import { Alert, Image, Linking, Pressable, RefreshControl, ScrollView, Share, Text, View } from 'react-native';
+import { Image, Linking, Pressable, RefreshControl, ScrollView, Share, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect } from '@react-navigation/native';
 import { api, ApiError } from '../api';
+import { showAlert } from '../alert';
 import { useAuth } from '../auth';
 import { WEB } from '../config';
 import { ago, fmt, inr } from '../format';
@@ -37,21 +38,10 @@ export function Profile() {
   }, []);
   useFocusEffect(useCallback(() => { load(); }, [load]));
 
-  function menu() {
-    Alert.alert(user?.name || 'Account', undefined, [
-      { text: 'Edit profile', onPress: () => nav.navigate('EditProfile') },
-      { text: 'Settings', onPress: () => nav.navigate('Settings') },
-      { text: 'Terms', onPress: () => Linking.openURL(`${WEB}/terms`) },
-      { text: 'Privacy Policy', onPress: () => Linking.openURL(`${WEB}/privacy`) },
-      { text: 'Contact support', onPress: () => Linking.openURL(`${WEB}/support`) },
-      { text: 'Sign out', onPress: () => signOut() },
-      { text: 'Delete account', style: 'destructive', onPress: confirmDelete },
-      { text: 'Cancel', style: 'cancel' }]);
-  }
   function confirmDelete() {
-    Alert.alert('Delete your account?', 'This permanently removes your profile, vouches and feedback. It cannot be undone.', [
+    showAlert('Delete your account?', 'This permanently removes your profile, vouches and feedback. It cannot be undone.', [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Delete', style: 'destructive', onPress: async () => { try { await api('/me', { method: 'DELETE' }); await signOut(); } catch (e) { Alert.alert('Could not delete', e instanceof ApiError ? e.message : 'Try again'); } } }]);
+      { text: 'Delete', style: 'destructive', onPress: async () => { try { await api('/me', { method: 'DELETE' }); await signOut(); } catch (e) { showAlert('Could not delete', e instanceof ApiError ? e.message : 'Try again'); } } }]);
   }
   async function shareProfile() {
     try { await Share.share({ message: `Check out ${user?.name || ''} on Vouch\n${WEB}/u/${user?.handle}` }); } catch { /* ignore */ }
@@ -95,7 +85,7 @@ export function Profile() {
         const patch = (list: Idea[]) => list.map((x) => (x.id === id ? { ...x, viewer: { ...x.viewer, vouched: r.vouched }, stats: { ...x.stats, vouches: r.count } } : x));
         setIdeas(patch); setVouched(patch); setWanted(patch);
       })
-      .catch(() => Alert.alert('Could not vouch', 'Try again'));
+      .catch(() => showAlert('Could not vouch', 'Try again'));
   }
 
   return (
@@ -113,20 +103,20 @@ export function Profile() {
           <LinearGradient colors={['#1a1a1c', '#0c0c0d']} style={{ height: 150 }} />
         )}
 
-        {/* Header action row: avatar + Edit profile + share + more */}
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, marginTop: -24 }}>
-          <View style={{ borderWidth: 3, borderColor: C.bg, borderRadius: 40, overflow: 'hidden' }}>
+        {/* Header action row: avatar + Edit profile + share + settings */}
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', paddingHorizontal: 16, marginTop: -42 }}>
+          <View style={{ borderWidth: 3, borderColor: C.bg, borderRadius: 42, overflow: 'hidden', backgroundColor: C.bg }}>
             <Avatar name={user?.name || 'Me'} url={user?.avatarUrl} size={78} />
           </View>
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 2 }}>
             <Pressable onPress={shareProfile} accessibilityLabel="Share profile" style={{ width: 38, height: 38, borderRadius: 19, borderWidth: 1, borderColor: C.ln, alignItems: 'center', justifyContent: 'center', marginRight: 8 }}>
               <Icon name="share" size={18} color={C.t} w={2} />
             </Pressable>
-            <Pressable onPress={() => nav.navigate('EditProfile')} accessibilityLabel="Edit profile" style={{ paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: C.ln }}>
+            <Pressable onPress={() => nav.navigate('EditProfile')} accessibilityLabel="Edit profile" style={{ height: 38, paddingHorizontal: 18, borderRadius: 19, borderWidth: 1, borderColor: C.ln, alignItems: 'center', justifyContent: 'center' }}>
               <Text style={{ color: C.t, fontSize: 14, fontWeight: '700' }}>Edit profile</Text>
             </Pressable>
-            <Pressable onPress={menu} accessibilityLabel="More" style={{ width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center', marginLeft: 8 }}>
-              <Icon name="more" size={18} color={C.t} w={2} />
+            <Pressable onPress={() => nav.navigate('Settings')} accessibilityLabel="Settings" style={{ width: 38, height: 38, borderRadius: 19, borderWidth: 1, borderColor: C.ln, alignItems: 'center', justifyContent: 'center', marginLeft: 8 }}>
+              <Icon name="settings" size={18} color={C.t} w={2} />
             </Pressable>
           </View>
         </View>

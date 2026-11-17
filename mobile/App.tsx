@@ -2,6 +2,7 @@ import { StatusBar } from 'expo-status-bar';
 import React from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as Sentry from '@sentry/react-native';
+import { AlertProvider } from './src/alert';
 import { AuthProvider } from './src/auth';
 import { ErrorBoundary } from './src/ErrorBoundary';
 import { Nav } from './src/Nav';
@@ -24,9 +25,11 @@ export default function App() {
     <SafeAreaProvider>
       <ErrorBoundary>
         <AuthProvider>
-          <StatusBar style="light" />
-          <UpdateChecker />
-          <Nav />
+          <AlertProvider>
+            <StatusBar style="light" />
+            <UpdateChecker />
+            <Nav />
+          </AlertProvider>
         </AuthProvider>
       </ErrorBoundary>
     </SafeAreaProvider>

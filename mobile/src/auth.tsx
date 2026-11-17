@@ -6,6 +6,7 @@ import type { User } from './types';
 
 type Ctx = {
   ready: boolean; seen: boolean; user: User | null; paymentsEnabled: boolean; imagesEnabled: boolean;
+  phoneLoginEnabled: boolean;
   finishOnboarding: () => Promise<void>;
   refresh: () => Promise<void>;
   signOut: () => Promise<void>;
@@ -26,6 +27,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [pays, setPays] = useState(false);
   const [images, setImages] = useState(false);
+  // Phone sign-in is opt-in from the server. Default to enabled (fail open) so
+  // an older server, a failed request, or a missing field never removes a way
+  // to sign in.
+  const [phoneLogin, setPhoneLogin] = useState(true);
 
   const signOut = useCallback(async () => {
     // Best effort: detach this device from the account, then clear it locally.
@@ -40,7 +45,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => { if (user) registerForPushNotifications(); }, [user]);
 
   useEffect(() => {
-    api<{ paymentsEnabled: boolean; imagesEnabled?: boolean }>('/config').then((c) => { setPays(c.paymentsEnabled); setImages(!!c.imagesEnabled); }).catch(() => {});
+    api<{ paymentsEnabled: boolean; imagesEnabled?: boolean; phoneLoginEnabled?: boolean }>('/config')
+      .then((c) => {
+        setPays(c.paymentsEnabled);
+        setImages(!!c.imagesEnabled);
+        setPhoneLogin(c.phoneLoginEnabled !== false);
+      })
+      .catch(() => { setPhoneLogin(true); });
     (async () => {
       try {
         setSeen((await SecureStore.getItemAsync('vouch.seen')) === '1');
@@ -66,10 +77,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [signOut]);
 
   const value = useMemo<Ctx>(() => ({
-    ready, seen, user, paymentsEnabled: pays, imagesEnabled: images,
+    ready, seen, user, paymentsEnabled: pays, imagesEnabled: images, phoneLoginEnabled: phoneLogin,
     finishOnboarding: async () => { setSeen(true); await SecureStore.setItemAsync('vouch.seen', '1'); },
     refresh: async () => { const me = await api<{ user: User }>('/me'); setUser(me.user); saveUser(me.user); },
     signOut,
-  }), [ready, seen, user, pays, images, signOut]);
+  }), [ready, seen, user, pays, images, phoneLogin, signOut]);
   return <AuthCtx.Provider value={value}>{children}</AuthCtx.Provider>;
 }

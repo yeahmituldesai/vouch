@@ -6,16 +6,12 @@ import { config } from '../config';
 import { q } from '../db';
 import { HttpError, parse, wrap } from '../lib/http';
 import { hashOtp, normalizePhone, safeEq, signToken } from '../lib/auth';
-import { sendOtp } from '../lib/sms';
+import { PHONE_LOGIN_UNAVAILABLE_MESSAGE, phoneLoginEnabled, sendOtp } from '../lib/sms';
 
 export const publicUser = (u: any) => ({ id: u.id, name: u.name, handle: u.handle, bio: u.bio ?? '', avatarUrl: u.avatar_url ?? null, bannerUrl: u.banner_url ?? null, location: u.location ?? '', website: u.website ?? '', role: u.role ?? 'member', createdAt: u.created_at });
 const r = Router();
 const isReview = (phone: string) =>
   config.NODE_ENV !== 'production' && !!config.REVIEW_PHONE && !!config.REVIEW_CODE && phone === normalizePhone(config.REVIEW_PHONE);
-
-// Phone + OTP sign-in existed before Google sign-in and is kept only for local
-// development and the automated tests. It is completely disabled in production.
-const phoneLoginEnabled = config.NODE_ENV !== 'production';
 
 const tooMany = (_req: any, res: any) =>
   res.status(429).json({ error: { code: 'RATE_LIMITED', message: 'Too many attempts. Please wait a few minutes and try again.' } });
@@ -34,8 +30,10 @@ const googleLimiter = rateLimit({
 });
 const phoneSchema = z.string().min(8).max(20);
 
+// Phone + OTP sign-in works whenever SMS can reach the user: a real SMS
+// provider in any environment, or the console provider outside production.
 r.post('/otp/request', limiter, wrap(async (req, res) => {
-  if (!phoneLoginEnabled) throw new HttpError(404, 'NOT_FOUND', 'Phone sign-in is not available');
+  if (!phoneLoginEnabled()) throw new HttpError(503, 'PHONE_LOGIN_UNAVAILABLE', PHONE_LOGIN_UNAVAILABLE_MESSAGE);
   const body = parse(z.object({ phone: phoneSchema }), req.body);
   const phone = normalizePhone(body.phone);
   if (!phone) throw new HttpError(400, 'INVALID_PHONE', 'Enter a valid mobile number');
@@ -55,7 +53,7 @@ r.post('/otp/request', limiter, wrap(async (req, res) => {
 }));
 
 r.post('/otp/verify', limiter, wrap(async (req, res) => {
-  if (!phoneLoginEnabled) throw new HttpError(404, 'NOT_FOUND', 'Phone sign-in is not available');
+  if (!phoneLoginEnabled()) throw new HttpError(503, 'PHONE_LOGIN_UNAVAILABLE', PHONE_LOGIN_UNAVAILABLE_MESSAGE);
   const body = parse(z.object({ phone: phoneSchema, code: z.string().regex(/^\d{6}$/, 'Enter the 6 digit code') }), req.body);
   const phone = normalizePhone(body.phone);
   if (!phone) throw new HttpError(400, 'INVALID_PHONE', 'Enter a valid mobile number');

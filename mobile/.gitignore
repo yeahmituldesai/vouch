@@ -3,5 +3,20 @@ node_modules
 dist
 .env
 ios
-android
+
+# The native Android project is source-controlled (see docs/BUILD_ANDROID.md).
+# Only generated build output, machine-local config and signing material are ignored.
+android/.gradle
+android/.kotlin
+android/build
+android/app/build
+android/.cxx
+android/app/.cxx
+android/local.properties
+android/app/debug.keystore
+android/app/release.keystore
+android/app/*.jks
+
+# CMake staging leftovers from the Windows long-path workaround
+android/c
 c

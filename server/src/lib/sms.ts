@@ -1,8 +1,22 @@
 import { config } from '../config';
 import { HttpError } from './http';
 
+export const PHONE_LOGIN_UNAVAILABLE_MESSAGE =
+  'Phone sign-in is unavailable because SMS delivery is not configured. Use Google sign-in instead.';
+
+// Phone login only works when an SMS can actually reach the user: a real SMS
+// provider in any environment, or the console provider outside production
+// (where the code is shown to the developer instead of being sent).
+export function phoneLoginEnabled(): boolean {
+  return config.SMS_PROVIDER !== 'console' || config.NODE_ENV !== 'production';
+}
+
 export async function sendOtp(phone: string, code: string) {
   if (config.SMS_PROVIDER === 'console') {
+    // Never write an OTP to production logs. The API reports phone login as
+    // unavailable instead (see phoneLoginEnabled above).
+    if (config.NODE_ENV === 'production')
+      throw new HttpError(503, 'PHONE_LOGIN_UNAVAILABLE', PHONE_LOGIN_UNAVAILABLE_MESSAGE);
     console.log(`[sms:console] OTP for ${phone}: ${code}`);
     return;
   }

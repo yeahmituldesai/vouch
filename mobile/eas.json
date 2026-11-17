@@ -17,7 +17,9 @@
         "EXPO_PUBLIC_API_URL": "https://vouch-api-9fpi.onrender.com",
         "EXPO_PUBLIC_WEB_URL": "https://vouch-api-9fpi.onrender.com",
         "EXPO_PUBLIC_GOOGLE_CLIENT_ID": "700553469092-3l4c5l5jloa2rh7137eoespdo9vadof8.apps.googleusercontent.com",
-        "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "700553469092-aaa23m9jhjtf2a95m25qp7aiu6vi79b3.apps.googleusercontent.com"
+        "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "700553469092-aaa23m9jhjtf2a95m25qp7aiu6vi79b3.apps.googleusercontent.com",
+        "EXPO_PUBLIC_SENTRY_DSN": "https://eb6a67bf12ea3b6d091840d1b0db45fa@o4512440660983808.ingest.us.sentry.io/4512440671076352",
+        "EXPO_PUBLIC_APP_ENV": "beta"
       },
       "android": {
         "buildType": "apk"
@@ -28,7 +30,9 @@
         "EXPO_PUBLIC_API_URL": "https://vouch-api-9fpi.onrender.com",
         "EXPO_PUBLIC_WEB_URL": "https://vouch-api-9fpi.onrender.com",
         "EXPO_PUBLIC_GOOGLE_CLIENT_ID": "700553469092-3l4c5l5jloa2rh7137eoespdo9vadof8.apps.googleusercontent.com",
-        "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "700553469092-aaa23m9jhjtf2a95m25qp7aiu6vi79b3.apps.googleusercontent.com"
+        "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "700553469092-aaa23m9jhjtf2a95m25qp7aiu6vi79b3.apps.googleusercontent.com",
+        "EXPO_PUBLIC_SENTRY_DSN": "https://eb6a67bf12ea3b6d091840d1b0db45fa@o4512440660983808.ingest.us.sentry.io/4512440671076352",
+        "EXPO_PUBLIC_APP_ENV": "production"
       }
     }
   },

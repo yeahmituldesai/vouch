@@ -1,9 +1,10 @@
 import React, { useCallback, useState } from 'react';
-import { Alert, Image, Pressable, RefreshControl, ScrollView, Share, Text, View } from 'react-native';
+import { Image, Pressable, RefreshControl, ScrollView, Share, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect, useRoute } from '@react-navigation/native';
 import { api, ApiError } from '../api';
+import { showActionSheet, showAlert } from '../alert';
 import { useAuth } from '../auth';
 import { WEB } from '../config';
 import { ago, fmt } from '../format';
@@ -40,13 +41,26 @@ export function UserProfile() {
     if (!user) return;
     tap();
     try { const r = await api<{ following: boolean; followers: number }>(`/users/${user.id}/follow`, { method: 'POST' }); setFollowing(r.following); setCounts((c: any) => c ? { ...c, followers: r.followers } : c); }
-    catch (e) { Alert.alert('Could not follow', e instanceof ApiError ? e.message : 'Try again'); }
+    catch (e) { showAlert('Could not follow', e instanceof ApiError ? e.message : 'Try again'); }
+  }
+  function userMenu() {
+    if (!user) return;
+    showActionSheet({
+      title: `@${user.handle}`,
+      options: [
+        { text: `Block ${user.name || '@' + user.handle}`, style: 'destructive', onPress: block },
+        { text: 'Share profile', style: 'default', onPress: shareProfile },
+        { text: 'Cancel', style: 'cancel' },
+      ],
+      cancelButtonIndex: 2,
+      destructiveButtonIndex: 0,
+    });
   }
   async function block() {
     if (!user) return;
-    Alert.alert(`Block ${user.name || ''}?`, 'You will no longer see their ideas.', [
+    showAlert(`Block ${user.name || ''}?`, 'You will no longer see their ideas.', [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Block', style: 'destructive', onPress: async () => { try { await api(`/users/${user.id}/block`, { method: 'POST' }); nav.goBack(); } catch (e) { Alert.alert('Could not block', e instanceof ApiError ? e.message : 'Try again'); } } }]);
+      { text: 'Block', style: 'destructive', onPress: async () => { try { await api(`/users/${user.id}/block`, { method: 'POST' }); nav.goBack(); } catch (e) { showAlert('Could not block', e instanceof ApiError ? e.message : 'Try again'); } } }]);
   }
   async function shareProfile() {
     if (!user) return;
@@ -56,7 +70,7 @@ export function UserProfile() {
     tap();
     api<{ vouched: boolean; count: number }>(`/ideas/${ideaId}/vouch`, { method: 'POST' })
       .then((r) => setIdeas((l) => l.map((x) => (x.id === ideaId ? { ...x, viewer: { ...x.viewer, vouched: r.vouched }, stats: { ...x.stats, vouches: r.count } } : x))))
-      .catch(() => Alert.alert('Could not vouch', 'Try again'));
+      .catch(() => showAlert('Could not vouch', 'Try again'));
   }
 
   if (!user) return (
@@ -97,14 +111,14 @@ export function UserProfile() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }} edges={['top']}>
-      {/* X-style header: back arrow, title, share */}
+      {/* X-style header: back arrow, title, more */}
       <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#000', paddingHorizontal: 16, paddingTop: 6, paddingBottom: 4 }}>
         <Pressable onPress={() => nav.goBack()} accessibilityLabel="Back" hitSlop={8} style={{ width: 30, height: 38, alignItems: 'flex-start', justifyContent: 'center' }}>
           <Icon name="back" size={18} color={C.t} w={2} />
         </Pressable>
         <Text numberOfLines={1} style={{ flex: 1, color: C.t, fontSize: 18, fontWeight: '600', marginLeft: 6 }}>{user.name}</Text>
-        <Pressable onPress={shareProfile} accessibilityLabel="Share profile" style={{ width: 38, height: 38, borderRadius: 19, borderWidth: 1, borderColor: C.ln, alignItems: 'center', justifyContent: 'center' }}>
-          <Icon name="share" size={18} color={C.t} w={2} />
+        <Pressable onPress={userMenu} accessibilityLabel="More options" style={{ width: 38, height: 38, borderRadius: 19, borderWidth: 1, borderColor: C.ln, alignItems: 'center', justifyContent: 'center' }}>
+          <Icon name="more" size={18} color={C.t} w={2} />
         </Pressable>
       </View>
 
@@ -112,24 +126,26 @@ export function UserProfile() {
         {/* Banner */}
         {user.bannerUrl ? <Image source={{ uri: user.bannerUrl }} style={{ width: '100%', height: 150 }} resizeMode="cover" /> : <LinearGradient colors={['#1a1a1c', '#0c0c0d']} style={{ height: 150 }} />}
 
-        {/* Header action row */}
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, marginTop: -24 }}>
-          <View style={{ borderWidth: 3, borderColor: C.bg, borderRadius: 40, overflow: 'hidden' }}>
+        {/* Header action row: avatar + actions */}
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', paddingHorizontal: 16, marginTop: -42 }}>
+          <View style={{ borderWidth: 3, borderColor: C.bg, borderRadius: 42, overflow: 'hidden', backgroundColor: C.bg }}>
             <Avatar name={user.name} url={user.avatarUrl} size={78} />
           </View>
           {!isSelf ? (
-            <View style={{ flexDirection: 'row' }}>
-              <Pressable onPress={block} accessibilityLabel="More" style={{ width: 38, height: 38, borderRadius: 19, borderWidth: 1, borderColor: C.ln, alignItems: 'center', justifyContent: 'center', marginRight: 8 }}>
-                <Icon name="more" size={18} color={C.t} w={2} />
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 2 }}>
+              <Pressable onPress={shareProfile} accessibilityLabel="Share profile" style={{ width: 38, height: 38, borderRadius: 19, borderWidth: 1, borderColor: C.ln, alignItems: 'center', justifyContent: 'center', marginRight: 8 }}>
+                <Icon name="share" size={18} color={C.t} w={2} />
               </Pressable>
-              <Pressable onPress={toggleFollow} accessibilityLabel={following ? 'Following' : 'Follow'} style={{ paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, backgroundColor: following ? 'transparent' : C.t, borderWidth: following ? 1 : 0, borderColor: C.ln }}>
+              <Pressable onPress={toggleFollow} accessibilityLabel={following ? 'Following' : 'Follow'} style={{ height: 38, paddingHorizontal: 20, borderRadius: 19, backgroundColor: following ? 'transparent' : C.t, borderWidth: following ? 1 : 0, borderColor: C.ln, alignItems: 'center', justifyContent: 'center' }}>
                 <Text style={{ color: following ? C.t : '#000', fontSize: 14, fontWeight: '700' }}>{following ? 'Following' : 'Follow'}</Text>
               </Pressable>
             </View>
           ) : (
-            <Pressable onPress={() => nav.navigate('EditProfile')} accessibilityLabel="Edit profile" style={{ paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: C.ln }}>
-              <Text style={{ color: C.t, fontSize: 14, fontWeight: '700' }}>Edit profile</Text>
-            </Pressable>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 2 }}>
+              <Pressable onPress={() => nav.navigate('EditProfile')} accessibilityLabel="Edit profile" style={{ height: 38, paddingHorizontal: 18, borderRadius: 19, borderWidth: 1, borderColor: C.ln, alignItems: 'center', justifyContent: 'center' }}>
+                <Text style={{ color: C.t, fontSize: 14, fontWeight: '700' }}>Edit profile</Text>
+              </Pressable>
+            </View>
           )}
         </View>
 

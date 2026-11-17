@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Alert, Animated, FlatList, Pressable, RefreshControl, Share, Text, View } from 'react-native';
+import { Animated, FlatList, Pressable, RefreshControl, Share, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { api, ApiError } from '../api';
+import { showAlert } from '../alert';
 import { Art } from '../Art';
 import { WEB } from '../config';
 import { Icon } from '../Icon';
@@ -63,7 +64,7 @@ export function useVouch(setItems: React.Dispatch<React.SetStateAction<Idea[]>>)
       const r = await vouchApi(id);
       setItems((l) => l.map((x) => (x.id === id ? { ...x, viewer: { ...x.viewer, vouched: r.vouched }, stats: { ...x.stats, vouches: r.count } } : x)));
       if (r.vouched) success();
-    } catch (e) { Alert.alert('Could not vouch', errMsg(e)); }
+    } catch (e) { showAlert('Could not vouch', errMsg(e)); }
   }, [setItems]);
 }
 
