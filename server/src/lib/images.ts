@@ -103,7 +103,7 @@ export async function uploadImage(dataUrl: string, prefix: string, kind: ImageKi
   }
   if (supabaseStorageEnabled()) {
     const key = `${prefix}/${crypto.randomBytes(12).toString('hex')}.${MIME_EXT[mime]}`;
-    const url = `${config.SUPABASE_URL!.replace(/\\/$/, '')}/storage/v1/object/${config.SUPABASE_STORAGE_BUCKET}/${key}`;
+    const url = `${config.SUPABASE_URL!.replace(/\/$/, '')}/storage/v1/object/${config.SUPABASE_STORAGE_BUCKET}/${key}`;
     const res = await fetch(url, {
       method: 'POST',
       headers: {
@@ -118,7 +118,7 @@ export async function uploadImage(dataUrl: string, prefix: string, kind: ImageKi
       const text = await res.text().catch(() => '');
       throw new HttpError(502, 'STORAGE_UPLOAD_FAILED', `Supabase Storage upload failed (${res.status}): ${text.slice(0, 200)}`);
     }
-    return `${config.SUPABASE_URL!.replace(/\\/$/, '')}/storage/v1/object/public/${config.SUPABASE_STORAGE_BUCKET}/${key}`;
+    return `${config.SUPABASE_URL!.replace(/\/$/, '')}/storage/v1/object/public/${config.SUPABASE_STORAGE_BUCKET}/${key}`;
   }
   // No object storage configured: store the (already compressed) image inline so
   // the beta works without a third-party account. The client crops and compresses first.
