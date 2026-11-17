@@ -12,7 +12,7 @@
 
 import { config } from '../src/config';
 import { pool, q } from '../src/db';
-import { r2Enabled, uploadImage } from '../src/lib/images';
+import { r2Enabled, storageBackend, supabaseStorageEnabled, uploadImage } from '../src/lib/images';
 
 const DRY_RUN = process.argv.includes('--dry-run');
 
@@ -40,11 +40,11 @@ async function collect(): Promise<Row[]> {
 }
 
 async function main() {
-  if (!r2Enabled()) {
-    console.error('[migrate-images] R2 is not configured. Set all R2_* env vars first (see docs/IMAGE_STORAGE.md).');
+  if (!r2Enabled() && !supabaseStorageEnabled()) {
+    console.error('[migrate-images] No object storage configured. Set R2_* or SUPABASE_* env vars first (see docs/IMAGE_STORAGE.md).');
     process.exit(1);
   }
-  console.log(`[migrate-images] backend = R2, dry-run = ${DRY_RUN}`);
+  console.log(`[migrate-images] backend = ${storageBackend()}, dry-run = ${DRY_RUN}`);
 
   const rows = await collect();
   console.log(`[migrate-images] found ${rows.length} data-URL image(s) to migrate`);
